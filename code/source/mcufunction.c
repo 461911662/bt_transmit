@@ -55,16 +55,38 @@ const uint8_t code send_scale_data[60]=
 void InitMCU(void);
 /*********************************************************************
 ** InitMCU
+*
+******************************************************************************
+**  ROUTINE NAME: initMcu                                                   **
+**  I/O define  :                                                           **
+**     Bit|   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   | **
+**  Port 0|  P07  |  P06  |  P05  |  P04  |  P03  |  P02  |  P01  |  P00  | **
+**   I/O  | KEY(I)| KEY(I)| KEY(I)| undef | undef | undef | undef | undef | **
+**  Port 1|  P17  |  P16  |  P15  |  P14  |  P13  |  P12  |  P11  |  P10  | **
+**   I/O  | undef | undef | undef | undef | undef | undef | undef | undef | **
+**  Port 3|  P37  |  P36  |  P35  |  P34  |  P33  |  P32  |  P31  |  P30  | **
+**   I/O  | undef | undef | undef | undef |KEY2(I)|KEY1(I)| Tx(O) | Rx(I) | **
+******************************************************************************
+*1.初始化P05 P06 P07 P32 P33按键
+*2.初始化串口引脚 P30 P31
+*3.初始化系统时钟，使能引脚功能
+*4.清除RSFLAG寄存器标志
 *********************************************************************/
 void InitMCU(void)
 {
+/*
+** Port 0/1/2
+** OE  - 0:input     1:output
+** PUN - 0:Pull-up   1:HZ
+** WUn - 0:Wakeup    1:No Wakeup
+*/
  //   P0 	  = 0xD5;
  //   P0OE  = 0xAF;
  //   P0PUN = 0xAF;
  //   P0WUN = 0xFF;
-    P0 = ~0x2a;
-    P0OE = 0x2a;
-    P0PUN = 0x2a;
+    P0 = 0xFF;
+    P0OE = 0x00;
+    P0PUN = 0x00;
     P0WUN = 0xFF;
     
     P1 	  = 0xFF;
@@ -73,8 +95,8 @@ void InitMCU(void)
     P1WUN = 0xFF;
     
     P3 	  = 0xFF;
-    P3OE  = 0x00;
-    P3PUN = 0x03;
+    P3OE  = 0x02;
+    P3PUN = 0x00;
     P3WUN = 0xFF;
     
     /*********************************************/
@@ -82,7 +104,7 @@ void InitMCU(void)
     PCONE |= 0x01;  //SYSCLK = 16MHz / 2 = 8MHz  */
     PCON  |= 0x01;  //Enable CKSE                */
     /*********************************************/
-    RSFLAG = 0x07;
+    RSFLAG = 0x07; /* 清除LVDF,RESETNF,PORF重启标志 */
     check_stable = 0x5AA5;
 }
 

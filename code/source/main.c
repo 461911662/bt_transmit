@@ -178,12 +178,15 @@ void main(void)
     uint8_t xdata   AdvFastSpeed = ENABLE;
     uint8_t xdata   *ptrChar = NULL;
     uint8_t xdata   result, i;
-		uint16_t xdata 	 waitpacket_tmp=0, waitpacket_tmp1=0, waitpacket_tmp2=0;
-		//while(~P0_4);
+	uint16_t xdata 	 waitpacket_tmp=0, waitpacket_tmp1=0, waitpacket_tmp2=0;
+	//while(~P0_4);
 
+    /* 1.关闭全局中断 */
     InterruptDisable();
+    
+    /* 2.初始化MCU    */
     InitMCU();
-    internalRC = 0; //0 :Using External RC 32.768KHz ; 1:Using internal RC 32.000KHz
+    internalRC = 0; /* 0 :Using External RC 32.768KHz ; 1:Using internal RC 32.000KHz */
 
     InitCrystalCL(0x0d);  //AMICCOM CrystalCL 0x32(MD8107-A05)(18pF)/ 0x14(MD8107-A06)(12pF)/ 0x0D(9pF)
     InitRF();
@@ -192,6 +195,8 @@ void main(void)
 
     InitBLE();
     BLE_SetTxPower(0); //level 0 ~ 7 : 0 => -17dBm; 1 => -15dBm; 2 => -10dBm; 3 => -5dBm; 4 => 0dBm; 5 => 2dBm; 6 => 4dBm; 7 => 7dBm
+
+    /* 3.关中断 */
     InterruptEnable();
 
 #ifdef _PROFILE_TAOBAO_
@@ -203,14 +208,15 @@ void main(void)
 		datevalue=788888;
 #endif
 ////////////////TWOR///////////////////////////////////
+        /* 启动0.5s定时器 */
 		//IOSEL|=0x08;
 		IOSEL=0x00;
 		TworTimer=0;
-		TworTimerFlag=0;
+		TworTimerFlag=0; /* 清除TworTimerFlag，每隔0.5秒会被置位 */
 		Twor05Timer(ENABLE);
 ////////////////TWOR///////////////////////////////////
-		BLE_INT_FLAG=0;
-		OTA_RECONNECT_FLAG = DISABLE;
+		BLE_INT_FLAG=0;  /* 清除该标志位，此标志位可被BLE定时器置位                   */
+		OTA_RECONNECT_FLAG = DISABLE; /* 開始 OTA 程序前，自動斷線並重新連線後之提示 FLAG */
         
         //user add code.
         initIsr_timer1();
