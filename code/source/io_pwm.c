@@ -364,12 +364,15 @@ void pwm_init(void)
     Vibration_count = 0;
 }
 
+#if 0
 void reset(void)
 {
+
     disable_timer1();
-    Work(FALSE);
-    ledHint(RESET);
+    Work(FALSE); /* 重启重新初始化bWorkEna全局变量为假 */
+/*    ledHint(RESET);
     motorShock(DISABLE);
+
 
 
     ConfigParam.Motors_duty_cycle = 100;
@@ -381,8 +384,9 @@ void reset(void)
     ConfigParam.ShockType = sync;
     ConfigParam.ClkTickCtr = 0;
     Motors_run_count = 0;
+*/
 }
-
+#endif
 
 void BLE_SendDataPacket(uint8_t *sendBuf ,uint8_t sendSize)
 {

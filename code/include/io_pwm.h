@@ -5,7 +5,7 @@
 
 
 
-extern void reset(void);
+//extern void reset(void);
 extern void pwm_init(void);
 extern void pwm_deal(void); 
 extern void sub_function(void);

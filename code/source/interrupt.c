@@ -117,6 +117,6 @@ void KeyINT_ISR(void) interrupt 11
 {
     // User can add code
     EIF = 0x10;				// clr keyint flag
-    EIE &=~0x10;          // ½ûÖ¹Íâ²¿»½ĞÑ¹¦ÄÜ
-	P3WUN |= 0x01;
+    EIE &=~0x10;            // ç¦æ­¢å¤–éƒ¨é”®ç›˜å”¤é†’
+	P3WUN |= 0x01;          // disable P3.1 çš„å¼•è„šå”¤é†’
 }

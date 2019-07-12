@@ -61,13 +61,13 @@ void InitMCU(void);
 **  I/O define  :                                                           **
 **     Bit|   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   | **
 **  Port 0|  P07  |  P06  |  P05  |  P04  |  P03  |  P02  |  P01  |  P00  | **
-**   I/O  | KEY(I)| KEY(I)| KEY(I)| undef | undef | undef | undef | undef | **
+**   I/O  | undef | undef | KEY(I)| undef | KEY(I)| KEY(I)| KEY(I)| KEY(I)| **
 **  Port 1|  P17  |  P16  |  P15  |  P14  |  P13  |  P12  |  P11  |  P10  | **
 **   I/O  | undef | undef | undef | undef | undef | undef | undef | undef | **
 **  Port 3|  P37  |  P36  |  P35  |  P34  |  P33  |  P32  |  P31  |  P30  | **
-**   I/O  | undef | undef | undef | undef |KEY2(I)|KEY1(I)| Tx(O) | Rx(I) | **
+**   I/O  | undef | undef | undef | undef | undef | undef | Tx(O) | Rx(I) | **
 ******************************************************************************
-*1.初始化P05 P06 P07 P32 P33按键
+*1.初始化P05(Vol+) P03(Vol-) P02(video) P01(invert) P00(capture)按键
 *2.初始化串口引脚 P30 P31
 *3.初始化系统时钟，使能引脚功能
 *4.清除RSFLAG寄存器标志
@@ -120,58 +120,56 @@ void setIntoSleepFlag(bit enable)
 
 void En_Recovery(void)
 {
-    //ʹ��5s��ʱ
+    //使能0.5s定时
     Twor05Timer(ENABLE);
 }
 
-/**  ����*/
+/* 休眠 */
 void En_Sleep(void)
 {
-	
-			ADV_InitDef ADV_InitStructure;
-	
-		 //��ֹ�㲥
-			ADV_InitStructure.ADV_RndEnable = DISABLE;
-			ADV_InitStructure.ADV_TOEnable = DISABLE;
-			ADV_InitStructure.ADV_Run = DISABLE;     // disable adv.
-	
-			BLE_ADV_Cmd(&ADV_InitStructure);
-	
-			// ��ֹ5s��ʱ
-			Twor05Timer(DISABLE);
-	
-			En_P30_Wakeup_Init();
-	
-			//ʹ��p3.0���ⲿ�ж�
-			En_P30_Wakeup_Enable();
+	ADV_InitDef ADV_InitStructure;
+
+    //禁止广播
+	ADV_InitStructure.ADV_RndEnable = DISABLE;
+	ADV_InitStructure.ADV_TOEnable = DISABLE;
+	ADV_InitStructure.ADV_Run = DISABLE;     // disable adv.
+
+	BLE_ADV_Cmd(&ADV_InitStructure);
+
+	//禁止0.5秒定时
+	Twor05Timer(DISABLE);
+
+	En_P30_Wakeup_Init();
+
+	//使能P3.0的外部中断
+	En_P30_Wakeup_Enable();
 	
 
-		 //����
-		 BLE_AutoPwrDown_Enable();
-		 //clock 16M -> 8M
+    //休眠
+    BLE_AutoPwrDown_Enable();
+    //clock 16M -> 8M
 	
-	
-		 PCON |= 0x01;
+    PCON |= 0x01;
 }
 
-/*ʹ���ⲿ�����ж�*/
+/* 使能外部唤醒中断 */
 void En_P30_Wakeup_Enable(void)
 {
 		P3WUN &= ~0x01;		// P3_0 ,Enable wakeup
-		EIE |= 0x10;  
+		EIE |= 0x10;        // 打开外部中断
 }
 
-/** ��ʼ���ⲿ����*/
+/* 初始化外部唤醒 */
 void En_P30_Wakeup_Init(void)
 {
-        //p3_1    -- ���͹���
-        P3OE &= ~0x02;
-		P3PUN &= ~0x02;
-        P3 &= ~0x02;
+        //p3_1    -- 降低功耗
+        P3OE &= ~0x02; // P3.1为输入
+		P3PUN &= ~0x02; // P3.1为上拉
+        P3 &= ~0x02;    // P3.1为低电平
     
-		IOSEL &=~0x01;		// P3_0 use for normal IO
+		IOSEL &=~0x01;		// P3_1 use for normal IO
 		P3OE &=~0x01;
-		P3PUN &=~0x01;		// P3_0 pull up
+		P3PUN &=~0x01;		// P3_1 pull up
 	
 		P3 |= 0x01;
 	
@@ -196,14 +194,14 @@ void initIsr_timer1(void)
 
 void enable_timer1(void)
 {
-	ET1 = 1; // Enable Timer0 interrupt
-    TR1 = 1;//timer0 enable
+	ET1 = 1; // Enable Timer1 interrupt
+    TR1 = 1;//timer1 enable
 }
 
 void disable_timer1(void)
 {
-    ET1 = 0; 
-    TR1 = 0;
+    ET1 = 0;  // Disable Timer1 interrupt
+    TR1 = 0;  // timer1 stop
 }
 
 /*********************************************************************
