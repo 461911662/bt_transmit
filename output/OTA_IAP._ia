@@ -1,1 +1,0 @@
-"..\code\ASM\OTA_IAP.asm" SET (LARGE) DEBUG PRINT(.\OTA_IAP.lst) OBJECT(..\output\OTA_IAP.obj) EP
