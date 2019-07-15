@@ -14,8 +14,6 @@
 
 uint8_t xdata BLE_INT_FLAG;
 
-extern void pwm_deal(void);
-extern stConfigParam ConfigParam;
 
 /*********************************************************************
 ** INT1_ISR
@@ -33,13 +31,6 @@ void INT1_ISR(void) interrupt 2
 void Timer1_ISR(void) interrupt 3
 {
     // User can add code
-    ConfigParam.ClkTickCtr ++;//100us
-
-    pwm_deal();
-
-
-    if ( ++ ConfigParam.Vibration_Stand > 7)
-        ConfigParam.Vibration_Stand = 0;
 }
 
 /*********************************************************************

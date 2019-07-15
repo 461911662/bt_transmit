@@ -1,0 +1,36 @@
+C51 COMPILER V9.00   DEVICE_NAME                                                           07/14/2019 10:50:59 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE DEVICE_NAME
+OBJECT MODULE PLACED IN ..\output\device_name.obj
+COMPILER INVOKED BY: E:\developer kit tool\Keil_v5\C51\BIN\C51.EXE ..\code\source\device_name.c LARGE OPTIMIZE(9,SIZE) B
+                    -ROWSE NOAREGS INTVECTOR(0X0300) INCDIR(..\code\include) DEBUG OBJECTEXTEND PRINT(.\device_name.lst) TABS(2) OBJECT(..\ou
+                    -tput\device_name.obj)
+
+line level    source
+
+   1          #define _DEVICE_NAME_C_
+   2          #include "define.h"
+   3          
+   4          //DEFINE_DEVICE_NAME[0] = Data Length
+   5          //DEFINE_DEVICE_NAME[1] ~ DEFINE_DEVICE_NAME[15] = Data
+   6          
+   7          const uint8_t code DEFINE_DEVICE_NAME[16] =
+   8          {
+   9              0x0C, 'D',  'e',  'm',  'o',  ' ',  'U',  's',
+  10              'e',  'r',  'd',  'e',  'f',  0x00, 0x00, 0x00,   //Demo Keyboard
+  11          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

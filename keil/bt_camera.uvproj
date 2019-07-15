@@ -369,11 +369,6 @@
               <FilePath>..\code\source\interrupt.c</FilePath>
             </File>
             <File>
-              <FileName>io_pwm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\source\io_pwm.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\source\main.c</FilePath>
@@ -382,6 +377,11 @@
               <FileName>mcufunction.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\source\mcufunction.c</FilePath>
+            </File>
+            <File>
+              <FileName>usermcufunction.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\source\usermcufunction.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -409,11 +409,6 @@
               <FilePath>..\code\include\io_base.h</FilePath>
             </File>
             <File>
-              <FileName>io_pwm.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\code\include\io_pwm.h</FilePath>
-            </File>
-            <File>
               <FileName>LibFunction.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\code\include\LibFunction.h</FilePath>
@@ -432,6 +427,11 @@
               <FileName>servicegen.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\code\include\servicegen.h</FilePath>
+            </File>
+            <File>
+              <FileName>usermcufunction.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\include\usermcufunction.h</FilePath>
             </File>
           </Files>
         </Group>

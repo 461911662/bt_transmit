@@ -31,7 +31,6 @@ uint8_t xdata mousedata;
 
 void MouseDemo(void);
 
-
 #ifdef _PROFILE_HOGP_
 #ifdef _PROFILE_HOGP_COMSUMER_
 #define HDL_HIDS_REPORT_TAB_CSKEY_L                             0
@@ -178,7 +177,7 @@ void main(void)
     bit isUpdate1 = FALSE;
     bit isWorking = FALSE;
 
-    uint8_t xdata   UpdateOTASpeed;
+    //uint8_t xdata   UpdateOTASpeed;
     uint8_t xdata   DataLen;
     uint8_t xdata   AdvFastSpeed = ENABLE;
     uint8_t xdata   *ptrChar = NULL;
@@ -201,31 +200,22 @@ void main(void)
     InitBLE();
     BLE_SetTxPower(0); //level 0 ~ 7 : 0 => -17dBm; 1 => -15dBm; 2 => -10dBm; 3 => -5dBm; 4 => 0dBm; 5 => 2dBm; 6 => 4dBm; 7 => 7dBm
 
-    /* 3.关中断 */
+    /* 3.开中断 */
     InterruptEnable();
 
-#ifdef _PROFILE_TAOBAO_
-	for(i=0;i<10;i++)
-		scalebuf[i]=scale_data_init[i];
-
-	weightvalue=0;
-	datevalue=559240;
-	datevalue=788888;
-#endif
 ////////////////TWOR///////////////////////////////////
     /* 启动0.5s定时器 */
 	//IOSEL|=0x08;
 	IOSEL=0x00;
 	TworTimer=0;
 	TworTimerFlag=0; /* 清除TworTimerFlag，每隔0.5秒会被置位 */
-	Twor05Timer(ENABLE);
+	Twor05Timer(DISABLE);
 ////////////////TWOR///////////////////////////////////
 	BLE_INT_FLAG=0;  /* 清除该标志位，此标志位可被BLE定时器置位                   */
 	OTA_RECONNECT_FLAG = DISABLE; /* 開始 OTA 程序前，自動斷線並重新連線後之提示 FLAG */
         
     //user add code.
-    //initIsr_timer1();
-    //pwm_init();
+    initIsr_timer1();
     
 	while(1)
     {
@@ -234,8 +224,7 @@ void main(void)
         /* User Can Add Code */
         if(ble_state == STANDBY_STATE)
         {
-            
-            reset();
+            //reset();
             isWorking = FALSE;
 
             /* 初始化广播,并开启广播 */
@@ -248,9 +237,6 @@ void main(void)
             ADV_InitStructure.ADV_Run = ENABLE;
             BLE_ADV_Cmd(&ADV_InitStructure);
 
-            HID_report_MS_key_temp = 0x00;
-            mousedata = 0;
-
 			auth_req = FAIL;
 			init_req = FAIL;
 			auth_init_finish = FAIL;
@@ -259,31 +245,20 @@ void main(void)
 			KeyWakeup = 0;
 			sendscaledata = FAIL;
 			waitpacket=0;
-#ifdef _PROFILE_WECHAT_SIMPLE_MODE_
-			for(i=0;i<10;i++)
-				att_HDL_WECHAT_SIMPLEMODE_DATRWI[i] = current_total_data[i];
-			att_HDL_WECHAT_SIMPLEMODE_DATRWI[20]=10;
-#endif
         }
         else if(ble_state == ADV_STATE)
         {
-            UpdateOTASpeed = ENABLE;
+            //UpdateOTASpeed = ENABLE;
 
             isUpdate = FALSE;
             isUpdate1 = FALSE;
             isWorking = FALSE;
 
-            /* reset */
-            reset();
+            //reset();
         }
         else if(ble_state == CONNECT_ESTABLISH_STATE)
         {
             isWorking = TRUE;
-            //connected_init(); /* disable */
-
-            //timer_detect(); /* disable */
-
-            //sub_function(); /* disable */
             
             //if (UpdateOTASpeed)
             //{
@@ -292,7 +267,6 @@ void main(void)
             //    if ((OTA_SUCCESSFUL == Temp) || (OTA_COUNT_MAX == Temp))
             //        UpdateOTASpeed = DISABLE;
             //} /* Changing OTA download speeds */
-
             if (BLE_writeEventFlag)
             {
                 ptrChar = BLE_GetWriteEnvet();
@@ -348,15 +322,8 @@ void main(void)
                 else
                     ;
             }
+            
 #ifdef _PROFILE_HOGP_
-		    if(~P3_2)
-		    {
-		        do
-                {
-		            MouseDemo();
-		        }while(~P3_2);
-            }
-
 
 		    if(~P0_0)
 		    {
@@ -364,10 +331,10 @@ void main(void)
 		        {
                     /* 照相 */
                     att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x58; /* enter */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
                     result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                     if(result == SUCCESS)
                     {
@@ -382,10 +349,10 @@ void main(void)
 		            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
 		            {
 	                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                         result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                         if(result == SUCCESS)
                         {
@@ -405,6 +372,15 @@ void main(void)
                     if(result == SUCCESS)
                     {
                         xpresskeyVolup = 1;
+                    }
+                }
+                if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                {
+                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+                    result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    if(result == SUCCESS)
+                    {
+                        xpresskeyVolup = 0;
                     }
                 }
             }
@@ -436,6 +412,15 @@ void main(void)
                         xpresskeyVoldown = 1;
                     }
                 }
+                if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                {
+                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+                    result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    if(result == SUCCESS)
+                    {
+                        xpresskeyVoldown = 0;
+                    }
+                }
             }
 			else
 			{
@@ -459,10 +444,10 @@ void main(void)
 		        {
                     /* 摄像 */
                     att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x21; /* key4 */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
                     result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                     if(result == SUCCESS)
                     {
@@ -477,10 +462,10 @@ void main(void)
 		            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
 		            {
 	                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                         result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                         if(result == SUCCESS)
                         {
@@ -496,10 +481,10 @@ void main(void)
 		        {
                     /* 摄像 */
                     att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x20; /* key4 */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
-                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x133; /* fingerprint identify end */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x191; /* blue */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x12F; /* fingerprint up */
+                    //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x130; /* fingerprint finger up */
                     result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                     if(result == SUCCESS)
                     {
@@ -514,10 +499,10 @@ void main(void)
 		            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
 		            {
 	                    att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                        //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                         result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                         if(result == SUCCESS)
                         {
@@ -526,6 +511,7 @@ void main(void)
                     }
                 }
 			}
+            
 #endif
         }
 ////////////////TWOR///////////////////////////////////
@@ -536,16 +522,19 @@ void main(void)
 				if(OTA_START_FLAG==1)
 					_nop_();
 			}
-
+      /* MCU entry normal mode */
+      BLE_AutoPwrDown_Disable();
+      Twor05Timer(DISABLE);
 			TworTimerFlag=0;
 		}
 ////////////////TWOR///////////////////////////////////
 
+#if 1
         if(isIntoSleep())
         {
             RecoveryFlag  = 1;
             setIntoSleepFlag(FALSE);
-            reset();
+            //reset();
             En_Sleep();
         }
     
@@ -562,72 +551,6 @@ void main(void)
                 BLE_AutoPwrDown_Enable();
             }
         }
-    }
-}
-
-
-
-void MouseDemo(void)
-{
-#ifdef _PROFILE_HOGP_
-		uint8_t result;
-
-    if(mousedata == 0)
-    {
-        if((att_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-        {
-            HID_report_MS_key_temp++;
-            if(HID_report_MS_key_temp <= 0x3F)
-            {
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_L] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_H] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_L] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_H] = 0xFF;
-            }
-            else if(HID_report_MS_key_temp <= 0x7F)
-            {
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_L] = 0x01;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_H] = 0x00;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_L] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_H] = 0xFF;
-            }
-            else if(HID_report_MS_key_temp <= 0xBF)
-            {
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_L] = 0x01;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_H] = 0x00;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_L] = 0x01;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_H] = 0x00;
-            }
-            else if(HID_report_MS_key_temp <= 0xFF)
-            {
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_L] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_L_R_H] = 0xFF;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_L] = 0x01;
-                att_HDL_HIDS_REPORT_MSI[HDL_HIDS_REPORT_TAB_DIR_U_D_H] = 0x00;
-            }
-
-            result = BLE_SendData(att_HDL_HIDS_REPORT_MSI,ATT_HDL_HIDS_REPORT_MSI_INIT,ATT_HDL_HIDS_REPORT_MSI_INIT[4]);
-            if(result == SUCCESS)
-            {
-                mousedata = 0;
-            }
-            else
-            {
-                mousedata = 1;
-            }
-        }
-    }
-    else
-    {
-        result = BLE_SendData(att_HDL_HIDS_REPORT_MSI,ATT_HDL_HIDS_REPORT_MSI_INIT,ATT_HDL_HIDS_REPORT_MSI_INIT[4]);
-        if(result == SUCCESS)
-        {
-            mousedata = 0;
-        }
-        else
-        {
-            mousedata = 1;
-        }
-    }
 #endif
+    }
 }
