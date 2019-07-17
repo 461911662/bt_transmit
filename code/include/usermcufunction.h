@@ -3,5 +3,7 @@
 
 
 extern void reset(void);
+extern void entrySleep(void);
+extern void reMCUfun(void);
 
 #endif

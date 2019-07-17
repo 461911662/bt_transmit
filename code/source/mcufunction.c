@@ -84,9 +84,9 @@ void InitMCU(void)
  //   P0OE  = 0xAF;
  //   P0PUN = 0xAF;
  //   P0WUN = 0xFF;
-    P0 = 0xFF;
+    P0 = 0x00;
     P0OE = 0x00;
-    P0PUN = 0x00;
+    P0PUN = 0x2F;
     P0WUN = 0xFF;
     
     P1 	  = 0xFF;
@@ -106,6 +106,10 @@ void InitMCU(void)
     /*********************************************/
     RSFLAG = 0x07; /* 清除LVDF,RESETNF,PORF重启标志 */
     check_stable = 0x5AA5;
+
+    EIE |= 0x10; /* 使能外部按键中断 */
+    EIP |= 0x10; /* 外部中断优先级高 */
+    EIF |= 0x10; /* 清除中断标志位 */
 }
 
 bit isIntoSleep(void)

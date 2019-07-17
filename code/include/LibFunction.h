@@ -169,6 +169,7 @@ extern uint8_t BLE_ADV_Cmd(ADV_InitDef* ADV_InitStruct);
 extern void BLE_SLAVE_PROCESS(void);
 extern void StrobeCmd(uint8_t cmd);
 extern void A8107_WriteID(void);
+extern void BLE_setTerminate(void);
 extern void BLE_AutoPwrDown_Enable(void);
 extern void BLE_AutoPwrDown_Disable(void);
 extern uint8_t BLE_InitImmediateAlertLevel(uint8_t tmplevel);

@@ -11,8 +11,10 @@
 #include "A8107.h"
 #include "LibFunction.h"
 #include "io_base.h"
+#include "servicegen.h"
 
 uint8_t xdata BLE_INT_FLAG;
+extern void key_handleEvent(void);
 
 
 /*********************************************************************
@@ -21,7 +23,7 @@ uint8_t xdata BLE_INT_FLAG;
 void INT1_ISR(void) interrupt 2
 {
     // User can add code
-	PCON |= 0x01;
+	//PCON |= 0x01;
     _nop_();
 }
 
@@ -39,7 +41,7 @@ void Timer1_ISR(void) interrupt 3
 void Uart0Isr(void) interrupt 4
 {
     // User can add code
-	PCON |= 0x01;
+	//PCON |= 0x01;
     _nop_();
 }
 
@@ -107,7 +109,11 @@ void RFISR(void) interrupt 10
 void KeyINT_ISR(void) interrupt 11
 {
     // User can add code
-    EIF = 0x10;				// clr keyint flag
-    EIE &=~0x10;            // 禁止外部键盘唤醒
-	P3WUN |= 0x01;          // disable P3.1 的引脚唤醒
+    EIF |= 0x10;				// clr keyint flag
+//    EIE &=~0x10;            // 禁止外部键盘唤醒
+//	P3WUN |= 0x01;          // disable P3.1 的引脚唤醒
+
+#ifdef _PROFILE_HOGP_
+    key_handleEvent();            
+#endif
 }
