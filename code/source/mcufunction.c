@@ -86,8 +86,8 @@ void InitMCU(void)
  //   P0WUN = 0xFF;
     P0 = 0x00;
     P0OE = 0x00;
-    P0PUN = 0x2F;
-    P0WUN = 0xFF;
+    P0PUN = 0xD0; //0x2F;输入浮空
+    P0WUN = 0xD0; //0xFF;引脚不唤醒
     
     P1 	  = 0xFF;
     P1OE  = 0x0C;

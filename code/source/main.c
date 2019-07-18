@@ -19,6 +19,7 @@
 
 uint8_t xdata HID_report_MS_key_temp;
 uint8_t xdata HID_report_KB_key_temp; /* 键盘 */
+uint8_t xdata isPressedKey = 0;
 
 uint8_t xdata xpresskeyVolup;
 uint8_t xdata xpresskeyVoldown;
@@ -202,7 +203,18 @@ void main(void)
                     DataLen = BLE_GetWriteEnvet_Length();
                     RespondMaster(ptrChar, DataLen);
                 }
-                
+
+#ifdef KYE_DEBUG
+                if(P0_3)
+                {
+                    P0OE = 0x02;
+                    //P0_1 = 0;
+                }
+                if(P0_5)
+                {
+                    P0OE &= ~0x02;
+                }
+#endif                
             }
 
             if(TworTimerFlag)
@@ -310,25 +322,15 @@ void _3nop_delay(void)
 void key_handleEvent(void)
 {
     uint8_t xdata result;
-
-    /* 键盘唤醒 */
-    if(CONNECT_ESTABLISH_STATE != ble_state && isIntoSleep())
-    {
-        reMCUfun();
-        setIntoSleepFlag(FALSE);
-        Twor05Timer(ENABLE);
-        return;
-    }
-    else if(CONNECT_ESTABLISH_STATE != ble_state)
-    {
-        //_nop();
-        return ;
-    }
+    uint16_t i;
 
     /* 键盘处理 */
+
     if(~P0_0)
     {
-        _3nop_delay(); /* 消抖 */
+        for(i=0; i<1000; i++)
+            _3nop_delay(); /* 消抖 */
+
         if(P0_0)
         {
             return ;
@@ -345,7 +347,7 @@ void key_handleEvent(void)
             }
         }
 
-        if(xpresskeyCapture)
+        do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
@@ -356,17 +358,30 @@ void key_handleEvent(void)
                     xpresskeyCapture = 0;
                 }
             }
-        }
+        }while(xpresskeyCapture);        
+
+        do
+        {
+            _nop_();
+        }while(P0_0);
     }
 
+    //if(P0_5)
     if(~P0_5)
     {
-        _3nop_delay(); /* 消抖 */
+        for(i=0; i<1000; i++)
+            _3nop_delay(); /* 消抖 */
+
         if(P0_5)
+        //if(~P0_5)
         {
             return ;
         }
 
+        if(1 != isPressedKey)
+        {
+            return;
+        }
         if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 焦距+ */
@@ -378,9 +393,7 @@ void key_handleEvent(void)
             }
         }
 
-        _3nop_delay();
-        
-        if(xpresskeyVolup)
+        do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
@@ -391,15 +404,31 @@ void key_handleEvent(void)
                     xpresskeyVolup = 0;
                 }
             }
-        }
+        }while(xpresskeyVolup);
+
+        do
+        {
+            _nop_();
+        }while(P0_5);
+        
+        isPressedKey = 0;
     }
 
-    if(~P0_3)
+    if(P0_3)
+    //if(~P0_3)
     {
-        _3nop_delay(); /* 消抖 */
-        if(P0_3)
+        for(i=0; i<1000; i++)
+            _3nop_delay(); /* 消抖 */
+
+        if(~P0_3)
+        //if(P0_3)
         {
             return ;
+        }
+
+        if(0 != isPressedKey)
+        {
+            return;
         }
 
         if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
@@ -413,9 +442,7 @@ void key_handleEvent(void)
             }
         }
         
-        _3nop_delay();
-        
-        if(xpresskeyVoldown)
+        do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
@@ -426,12 +453,21 @@ void key_handleEvent(void)
                     xpresskeyVoldown = 0;
                 }
             }
-        }
+        }while(xpresskeyVoldown);
+
+        do
+        {
+            _nop_();
+        }while(P0_3);
+
+        isPressedKey = 1;
     }
 
     if(~P0_2)
     {
-        _3nop_delay(); /* 消抖 */
+        for(i=0; i<1000; i++)
+            _3nop_delay(); /* 消抖 */
+
         if(P0_2)
         {
             return ;
@@ -448,9 +484,7 @@ void key_handleEvent(void)
             }
         }
 
-        _3nop_delay();
-
-        if(xpresskeyVideo)
+        do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
@@ -461,12 +495,19 @@ void key_handleEvent(void)
                     xpresskeyVideo = 0;
                 }
             }
-        }
+        }while(xpresskeyVideo);
+
+        do
+        {
+            _nop_();
+        }while(P0_2);
     }
-    
+   
     if(~P0_1)
     {
-        _3nop_delay(); /* 消抖 */
+        for(i=0; i<1000; i++)
+            _3nop_delay(); /* 消抖 */
+
         if(P0_1)
         {
             return ;
@@ -483,9 +524,7 @@ void key_handleEvent(void)
             }
         }
 
-        _3nop_delay();
-
-        if(xpresskeyInvert)
+        do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
@@ -496,7 +535,12 @@ void key_handleEvent(void)
                     xpresskeyInvert = 0;
                 }
             }
-        }
+        }while(xpresskeyInvert);
+
+        do
+        {
+            _nop_();
+        }while(P0_1);
     }
 
 }

@@ -12,6 +12,8 @@
 #include "LibFunction.h"
 #include "io_base.h"
 #include "servicegen.h"
+#include "mcufunction.h"
+#include "usermcufunction.h"
 
 uint8_t xdata BLE_INT_FLAG;
 extern void key_handleEvent(void);
@@ -110,10 +112,23 @@ void KeyINT_ISR(void) interrupt 11
 {
     // User can add code
     EIF |= 0x10;				// clr keyint flag
-//    EIE &=~0x10;            // 禁止外部键盘唤醒
-//	P3WUN |= 0x01;          // disable P3.1 的引脚唤醒
 
-#ifdef _PROFILE_HOGP_
-    key_handleEvent();            
+#ifdef KYE_DEBUG
+    P0OE &= ~0x02;
 #endif
+
+    /* 键盘唤醒PM1->normal */
+    if(isIntoSleep())
+    {
+        reMCUfun();
+        setIntoSleepFlag(FALSE);
+        Twor05Timer(ENABLE);
+        return;
+    }
+
+    if(ble_state == CONNECT_ESTABLISH_STATE)
+    {
+        /* 按键事件处理 */
+        key_handleEvent();        
+    }
 }
