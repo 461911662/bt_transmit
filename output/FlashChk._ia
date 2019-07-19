@@ -1,1 +1,0 @@
-"..\code\ASM\FlashChk.a51" SET (LARGE) DEBUG PRINT(.\FlashChk.lst) OBJECT(..\output\FlashChk.obj) EP
