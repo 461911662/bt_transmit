@@ -1,0 +1,4602 @@
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE SERVICEGEN
+OBJECT MODULE PLACED IN ..\output\servicegen.obj
+COMPILER INVOKED BY: E:\developer kit tool\Keil_v5\C51\BIN\C51.EXE ..\code\blue_service\servicegen.c LARGE OPTIMIZE(9,SI
+                    -ZE) BROWSE NOAREGS INTVECTOR(0X0300) INCDIR(..\code\include) DEBUG OBJECTEXTEND PRINT(.\servicegen.lst) TABS(2) OBJECT(.
+                    -.\output\servicegen.obj)
+
+line level    source
+
+   1          /*****************************************************************************
+   2          **               AMICCOM Electronics Corporation Document                   **
+   3          **          Copyright (c) 2011-2014 AMICCOM Electronics Corporation         **
+   4          **                                                                          **
+   5          **      A3,1F,No.1, Li-Hsin 1th Road, Science_Based Industrid Park,         **
+   6          **                       Hsin_Chu City, 300, Taiwan, ROC.                   **
+   7          **                 Tel: 886-3-5785818   Fax: 886-3-5785819                  **
+   8          **         E-mail:info@amiccom.com.tw  http: //www.amiccom.com.tw           **
+   9          *****************************************************************************/
+  10          #define _SERVICEGEN_C_
+  11          
+  12          #include "define.h"
+  13          #include "servicegen.h"
+  14          
+  15          const uint8_t code ADV_DATA_INITIAL[32] = 
+  16          {
+  17              0x0B,   /* AD Data length */
+  18              
+  19              0x02,   /* AD type 广播出自己服务的UUID */
+  20              0x01, 0x05, 0x03, 0x02, 0x12, 0x18, 0x03,
+  21              0x19, 0xC0, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
+  22          //    0x11, 0x18, 0x0f, 0x18, 0x10, 0x18, 0x05,
+  23          //    0x18, 0x16, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00,
+  24              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  25              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  26          };
+  27          /*
+  28          const uint8_t code SCAN_RESPONSE_DATA_INITIAL[32] = 
+  29          {
+  30              0x0F,
+  31              
+  32              0x0A, 0x08, 0x41, 0x4D, 0x49, 0x43, 0x43, 0x4F,
+  33              0x4D, 0x2D, 0x46, 0x72, 0x61, 0x6E, 0x6B, 0x00,
+  34              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  35              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  36          };
+  37          */
+  38          const uint8_t code SCAN_RESPONSE_DATA_INITIAL[32] = 
+  39          {
+  40              0x09, /* AD type 广播出自己的蓝牙名字 */
+  41            
+  42          //    0x08, 0x08, 0x4D, 0x6F, 0x4C, 0x69, 0x5F, 0x57,  //设备名称 MoLi_WX
+  43              0x08, 0x08, 0x43, 0x53, 0x49, 0x5F, 0x44, 0x45,  //设备名称 CSI_DEV
+  44              0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  45              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  46              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  47          };
+  48          /*
+  49          #ifdef _PROFILE_TAOBAO_
+  50          const uint8_t code ADV_DATA_INITIAL[32] = 
+  51          {
+  52              0x18,  //User Define ADV Data Length
+  53              
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 2   
+
+  54              0x02, 0x01, 0x06, 0x07, 0x03, 0xE7, 0xFE, 0x18,    //ADV Data
+  55              0xD6, 0xB3, 0xFE, 0x0C, 0xFF, 0xA8, 0x01, 0x01,
+  56              0x00, 0x01, 0xE9, 0xEF, 0x24, 0x74, 0x96, 0x07,
+  57              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  58          };
+  59          
+  60          const uint8_t code SCAN_RESPONSE_DATA_INITIAL[32] = 
+  61          {
+  62              0x0A,  //User Define Scan response Data Length
+  63              
+  64              0x09, 0x09, 0x4C, 0x53, 0x5F, 0x53, 0x43, 0x41,    //Scan Response Data
+  65              0x31, 0x36, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  66              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  67              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  68          };
+  69          #endif
+  70          #ifdef _PROFILE_WECHAT_
+  71          const uint8_t code ADV_DATA_INITIAL[32] = 
+  72          {
+  73              0x11,  //User Define ADV Data Length
+  74              
+  75              0x02, 0x01, 0x05, 0x03, 0x02, 0xE7, 0xFE, 0x09,
+  76              0xFF, 0x0D, 0x00, 0xD0, 0x39, 0x72, 0xA5, 0xEF,
+  77              0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  78              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  79          };
+  80          
+  81          const uint8_t code SCAN_RESPONSE_DATA_INITIAL[32] = 
+  82          {
+  83              0x0E,  //User Define Scan response Data Length
+  84              
+  85              0x0D, 0x09, 0x41, 0x4D, 0x49, 0x43, 0x43, 0x4F,
+  86              0x4D, 0x2D, 0x42, 0x4C, 0x45, 0x31, 0x00, 0x00,
+  87              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  88              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  89          };
+  90          #endif
+  91          */
+  92          /*********************************************************************
+  93          ** Service Gengerator
+  94          *********************************************************************/
+  95          const uint8_t code ATT_HDL_INVALID[] =
+  96          {
+  97              0x00, 0x00
+  98          };
+  99          
+ 100          const uint8_t code ATT_HDL_GAP_PRIMARY_SERVICE[] = 
+ 101          {
+ 102              0x00, 0x01,
+ 103              0x28, 0x00,
+ 104              2,
+ 105              0x00, 0x18
+ 106          };
+ 107          
+ 108          const uint8_t code ATT_HDL_GAP_CHARACTERISTIC_DEVICE_NAME[] =
+ 109          {
+ 110              0x00, 0x02,
+ 111              0x28, 0x03,
+ 112              5,
+ 113              //0x02,
+ 114              {
+ 115                  //0x01 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 3   
+
+ 116                  0x02 |
+ 117                  //0x04 |
+ 118                  //0x08 |
+ 119                  //0x10 |
+ 120                  //0x20 |
+ 121                  //0x40 |
+ 122                  //0x80 |
+ 123                  0x00
+ 124              },
+ 125              0x03, 0x00,
+ 126              0x00 , 0x2A
+ 127          };
+ 128          
+ 129          const uint8_t code ATT_HDL_GAP_DEVICE_NAME_INIT[] =
+ 130          {
+ 131              0x00, 0x03,
+ 132              0x2A, 0x00 ,
+ 133              7,
+ 134          //    0x4D, 0x6F, 0x4C, 0x69, 0x5F, 0x57,  //设备名称 MoLi_WX
+ 135              0x43, 0x53, 0x49, 0x5F, 0x44, 0x45,  //设备名称 CSI_DEV
+ 136              0x56,
+ 137          
+ 138          };
+ 139          
+ 140          uint8_t xdata att_HDL_GAP_DEVICE_NAME[] =
+ 141          {                                                          
+ 142          //    0x4D, 0x6F, 0x4C, 0x69, 0x5F, 0x57,  //设备名称 MoLi_WX
+ 143              0x43, 0x53, 0x49, 0x5F, 0x44, 0x45,  //设备名称 CSI_DEV
+ 144              0x56,                                                                     
+ 145          };
+ 146          
+ 147          const uint8_t code ATT_HDL_GAP_CHARACTERISTIC_APPEARANCE[] =
+ 148          {
+ 149              0x00, 0x04,
+ 150              0x28, 0x03,
+ 151              5,
+ 152              {
+ 153                  //0x01 |
+ 154                  0x02 |
+ 155                  //0x04 |
+ 156                  //0x08 |
+ 157                  //0x10 |
+ 158                  //0x20 |
+ 159                  //0x40 |
+ 160                  //0x80 |
+ 161                  0x00
+ 162              },
+ 163              0x05, 0x00,
+ 164              0x01, 0x2A
+ 165          };
+ 166          
+ 167          const uint8_t code ATT_HDL_GAP_APPEARANCE[] =
+ 168          {
+ 169              0x00, 0x05,
+ 170              0x2A, 0x01,
+ 171              2,
+ 172              0x00, 0x00,
+ 173          };
+ 174          
+ 175          const uint8_t code ATT_HDL_GAP_CHARACTERISTIC_RECONNECTION_ADDRESS[] =
+ 176          {
+ 177              0x00, 0x06,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 4   
+
+ 178              0x28, 0x03,
+ 179              5,
+ 180              {
+ 181                  //0x01 |
+ 182                  //0x02 |
+ 183                  //0x04 |
+ 184                  0x08 |
+ 185                  //0x10 |
+ 186                  //0x20 |
+ 187                  //0x40 |
+ 188                  //0x80 |
+ 189                  0x00
+ 190              },
+ 191              0x07, 0x00,
+ 192              0x03, 0x2A
+ 193          };
+ 194          
+ 195          const uint8_t code ATT_HDL_GAP_RECONNECTION_ADDRESS_INIT[] =
+ 196          {
+ 197              0x00, 0x07,
+ 198              0x2A, 0x03,
+ 199              6,
+ 200              0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+ 201          };
+ 202          
+ 203          uint8_t xdata att_HDL_GAP_RECONNECTION_ADDRESS[] =
+ 204          {
+ 205              0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 206          };
+ 207          
+ 208          const uint8_t code ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PRIVACY_FLAG[] =
+ 209          {
+ 210              0x00, 0x08,
+ 211              0x28, 0x03,
+ 212              5,
+ 213              {
+ 214                  //0x01 |
+ 215                  0x02 |
+ 216                  //0x04 |
+ 217                  //0x08 |
+ 218                  //0x10 |
+ 219                  //0x20 |
+ 220                  //0x40 |
+ 221                  //0x80 |
+ 222                  0x00
+ 223              },
+ 224              0x09, 0x00,
+ 225              0x02, 0x2A
+ 226          };
+ 227          
+ 228          const uint8_t code ATT_HDL_GAP_PERIPHERAL_PRIVACY_FLAG[] =
+ 229          {
+ 230              0x00, 0x09,
+ 231              0x2A, 0x02,
+ 232              1,
+ 233              0x00
+ 234          };
+ 235          
+ 236          const uint8_t code ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS[] =
+ 237          {
+ 238              0x00, 0x0A, 
+ 239              0x28, 0x03,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 5   
+
+ 240              5,
+ 241              {
+ 242                  //0x01 |
+ 243                  0x02 |
+ 244                  //0x04 |
+ 245                  //0x08 |
+ 246                  //0x10 |
+ 247                  //0x20 |
+ 248                  //0x40 |
+ 249                  //0x80 |
+ 250                  0x00
+ 251              },
+ 252              0x0B, 0x00,
+ 253              0x04, 0x2A
+ 254          };
+ 255          
+ 256          const uint8_t code ATT_HDL_GAP_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS[] =
+ 257          {
+ 258              0x00, 0x0B,
+ 259              0x2A, 0x04,
+ 260              8,
+ 261              0x90, 0x01,
+ 262              0x70, 0x03,
+ 263              0x00, 0x00,
+ 264              0x98, 0x00,
+ 265          };
+ 266          
+ 267          const uint8_t code ATT_HDL_GATT_PRIMARY_SERVICE[] = 
+ 268          {
+ 269              0x00, 0x0C,
+ 270              0x28, 0x00,
+ 271              2,
+ 272              0x01, 0x18
+ 273          };
+ 274          
+ 275          const uint8_t code ATT_HDL_GATT_CHARACTERISTIC_SERVICE_CHANGED[] =
+ 276          {
+ 277              0x00, 0x0D,
+ 278              0x28, 0x03,
+ 279              5,
+ 280              {
+ 281                  //0x01 |
+ 282                  0x02 |
+ 283                  //0x04 |
+ 284                  //0x08 |
+ 285                  //0x10 |
+ 286                  0x20 |
+ 287                  //0x40 |
+ 288                  //0x80 |
+ 289                  0x00
+ 290              },
+ 291              0x0E, 0x00,
+ 292              0x05, 0x2A
+ 293          };
+ 294          
+ 295          const uint8_t code ATT_HDL_GATT_SERVICE_CHANGED_INIT[] =
+ 296          {
+ 297              0x00, 0x0E,
+ 298              0x2A, 0x05,
+ 299              4,
+ 300              0x01, 0x00,
+ 301              0xFF, 0xFF,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 6   
+
+ 302          };
+ 303          
+ 304          uint8_t xdata att_HDL_GATT_SERVICE_CHANGED[] =
+ 305          {
+ 306              0x00, 0x00,
+ 307              0x00, 0x00,
+ 308          };
+ 309          
+ 310          const uint8_t code ATT_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+ 311          {
+ 312              0x00, 0x0F,
+ 313              0x29, 0x02,
+ 314              2,
+ 315              0x00,
+ 316              0x00
+ 317          };
+ 318          
+ 319          uint8_t xdata att_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+ 320          {
+ 321              0x00, 0x00,
+ 322          };
+ 323          
+ 324          const uint8_t code ATT_HDL_DIS_PRIMARY_SERVICE[] =
+ 325          {
+ 326              0x00, 0x10,
+ 327              0x28, 0x00,
+ 328              2,
+ 329              0x0A, 0x18
+ 330          };
+ 331          
+ 332          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_SERIAL_NUMBER_STRING[] =
+ 333          {
+ 334              0x00, 0x11,
+ 335              0x28, 0x03,
+ 336              5,
+ 337              {
+ 338                  //0x01 |
+ 339                  0x02 |
+ 340                  //0x04 |
+ 341                  //0x08 |
+ 342                  //0x10 |
+ 343                  //0x20 |
+ 344                  //0x40 |
+ 345                  //0x80 |
+ 346                  0x00
+ 347              },
+ 348              0x12, 0x00,
+ 349              0x25, 0x2A
+ 350          };
+ 351          
+ 352          const uint8_t code ATT_HDL_DIS_SERIAL_NUMBER_STRING[] =
+ 353          {
+ 354              0x00, 0x12,
+ 355              0x2A, 0x25,
+ 356              4,
+ 357              0x30, 0x34, 0x32, 0x36,
+ 358          };
+ 359          
+ 360          const uint8_t code ATT_HDL_DIS_SERIAL_NUMBER_STRING_PRESENTATION_FORMAT[] =
+ 361          {
+ 362              0x00, 0x13,
+ 363              0x29, 0x04,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 7   
+
+ 364              7,
+ 365              0x19,
+ 366              0x00,
+ 367              0x00, 0x00,
+ 368              0x01,
+ 369              0x00, 0x00
+ 370          };
+ 371          
+ 372          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_MANUFACTURER_NAME_STRING[] =
+ 373          {
+ 374              0x00, 0x14,
+ 375              0x28, 0x03,
+ 376              5,
+ 377              {
+ 378                  //0x01 |
+ 379                  0x02 |
+ 380                  //0x04 |
+ 381                  //0x08 |
+ 382                  //0x10 |
+ 383                  //0x20 |
+ 384                  //0x40 |
+ 385                  //0x80 |
+ 386                  0x00
+ 387              },
+ 388              0x15, 0x00,
+ 389              0x29, 0x2A
+ 390          };
+ 391          
+ 392          const uint8_t code ATT_HDL_DIS_MANUFACTURER_NAME_STRING[] =
+ 393          {
+ 394              0x00, 0x15,
+ 395              0x2A, 0x29,
+ 396              13,
+ 397              0x41, 0x4D, 0x49, 0x43, 0x43, 0x4F, 0x4D, 0x20, 0x45, 0x6C, 0x65, 0x63, 0x2e,
+ 398          };
+ 399          
+ 400          const uint8_t code ATT_HDL_DIS_MANUFACTURER_NAME_STRING_PRESENTATION_FORMAT[] =
+ 401          {
+ 402              0x00, 0x16,
+ 403              0x29, 0x04,
+ 404              7,
+ 405              0x19,
+ 406              0x00,
+ 407              0x00, 0x00,
+ 408              0x01,
+ 409              0x00, 0x00
+ 410          };
+ 411          
+ 412          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_SYSTEM_ID[] =
+ 413          {
+ 414              0x00, 0x17,
+ 415              0x28, 0x03,
+ 416              5,
+ 417              {
+ 418                  //0x01 |
+ 419                  0x02 |
+ 420                  //0x04 |
+ 421                  //0x08 |
+ 422                  //0x10 |
+ 423                  //0x20 |
+ 424                  //0x40 |
+ 425                  //0x80 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 8   
+
+ 426                  0x00
+ 427              },
+ 428              0x18, 0x00,
+ 429              0x23, 0x2A
+ 430          };
+ 431          
+ 432          const uint8_t code ATT_HDL_DIS_SYSTEM_ID[] =
+ 433          {
+ 434              0x00, 0x18,
+ 435              0x2A, 0x23,
+ 436              8,
+ 437              0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA,
+ 438          };
+ 439          
+ 440          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_FIRMWARE_REVISION_STRING[] =
+ 441          {
+ 442              0x00, 0x19,
+ 443              0x28, 0x03,
+ 444              5,
+ 445              {
+ 446                  //0x01 |
+ 447                  0x02 |
+ 448                  //0x04 |
+ 449                  //0x08 |
+ 450                  //0x10 |
+ 451                  //0x20 |
+ 452                  //0x40 |
+ 453                  //0x80 |
+ 454                  0x00
+ 455              },
+ 456              0x1A, 0x00,
+ 457              0x26 , 0x2A
+ 458          };
+ 459          
+ 460          const uint8_t code ATT_HDL_DIS_FIRMWARE_REVISION_STRING[] =
+ 461          {
+ 462              0x00, 0x1A,
+ 463              0x2A, 0x26 ,
+ 464              4,
+ 465              0x30, 0x30, 0x30, 0x31,
+ 466          };
+ 467          
+ 468          const uint8_t code ATT_HDL_DIS_FIRMWARE_REVISION_STRING_PRESENTATION_FORMAT[] =
+ 469          {
+ 470              0x00, 0x1B,
+ 471              0x29, 0x04,
+ 472              7,
+ 473              0x19,
+ 474              0x00,
+ 475              0x00, 0x00,
+ 476              0x19,
+ 477              0x00, 0x00
+ 478          };
+ 479          
+ 480          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_MODEL_NUMBER_STRING[] =
+ 481          {
+ 482              0x00, 0x1C,
+ 483              0x28, 0x03,
+ 484              5,
+ 485              {
+ 486                  //0x01 |
+ 487                  0x02 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 9   
+
+ 488                  //0x04 |
+ 489                  //0x08 |
+ 490                  //0x10 |
+ 491                  //0x20 |
+ 492                  //0x40 |
+ 493                  //0x80 |
+ 494                  0x00
+ 495              },
+ 496              0x1D, 0x00,
+ 497              0x24, 0x2A
+ 498          };
+ 499          
+ 500          const uint8_t code ATT_HDL_DIS_MODEL_NUMBER_STRING[] =
+ 501          {
+ 502              0x00, 0x1D,
+ 503              0x2A, 0x24,
+ 504              6,
+ 505              0x4D, 0x44, 0x38, 0x31, 0x30, 0x37,
+ 506          };
+ 507          
+ 508          const uint8_t code ATT_HDL_DIS_MODEL_NUMBER_STRING_PRESENTATION_FORMAT[] =
+ 509          {
+ 510              0x00, 0x1E,
+ 511              0x29, 0x04,
+ 512              7,
+ 513              0x19,
+ 514              0x00,
+ 515              0x00, 0x00,
+ 516              0x01,
+ 517              0x00, 0x00
+ 518          };
+ 519          
+ 520          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_HARDWARE_REVISION_STRING[] =
+ 521          {
+ 522              0x00, 0x1F, 
+ 523              0x28, 0x03,
+ 524              5,
+ 525              {
+ 526                  //0x01 |
+ 527                  0x02 |
+ 528                  //0x04 |
+ 529                  //0x08 |
+ 530                  //0x10 |
+ 531                  //0x20 |
+ 532                  //0x40 |
+ 533                  //0x80 |
+ 534                  0x00
+ 535              },
+ 536              0x20, 0x00,
+ 537             0x27, 0x2A,
+ 538          };
+ 539          
+ 540          const uint8_t code ATT_HDL_DIS_HARDWARE_REVISION_STRING[] =
+ 541          {
+ 542              0x00, 0x20,
+ 543              0x2A, 0x27,
+ 544              3,
+ 545              0x55, 0x30, 0x33,
+ 546          };
+ 547          
+ 548          const uint8_t code ATT_HDL_DIS_HARDWARE_REVISION_STRING_PRESENTATION_FORMAT[] =
+ 549          {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 10  
+
+ 550              0x00, 0x21,
+ 551              0x29, 0x04,
+ 552              7,
+ 553              0x19,
+ 554              0x00,
+ 555              0x00, 0x00,
+ 556              0x01,
+ 557              0x00, 0x00 
+ 558          };
+ 559          
+ 560          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_SOFTWARE_REVISION_STRING[] =
+ 561          {
+ 562              0x00, 0x22,
+ 563              0x28, 0x03,
+ 564              5,
+ 565              {
+ 566                  //0x01 |
+ 567                  0x02 |
+ 568                  //0x04 |
+ 569                  //0x08 |
+ 570                  //0x10 |
+ 571                  //0x20 |
+ 572                  //0x40 |
+ 573                  //0x80 |
+ 574                  0x00
+ 575              },
+ 576              0x23, 0x00,
+ 577              0x28, 0x2A
+ 578          };
+ 579          
+ 580          const uint8_t code ATT_HDL_DIS_SOFTWARE_REVISION_STRING[] =
+ 581          {
+ 582              0x00, 0x23, 
+ 583              0x2A, 0x28,
+ 584              4,
+ 585              0x30, 0x30, 0x30, 0x30,
+ 586          };
+ 587          
+ 588          const uint8_t code ATT_HDL_DIS_SOFTWARE_REVISION_STRING_PRESENTATION_FORMAT[] =
+ 589          {
+ 590              0x00, 0x24,
+ 591              0x29, 0x04,
+ 592              7,
+ 593              0x19,
+ 594              0x00,
+ 595              0x00, 0x00,
+ 596              0x01,
+ 597              0x00, 0x00,
+ 598          };
+ 599          
+ 600          const uint8_t code ATT_HDL_DIS_CHARACTERISTIC_PNP_ID[] =
+ 601          {
+ 602              0x00, 0x25,
+ 603              0x28, 0x03,
+ 604              5,
+ 605              {
+ 606                  //0x01 |
+ 607                  0x02 |
+ 608                  //0x04 |
+ 609                  //0x08 |
+ 610                  //0x10 |
+ 611                  //0x20 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 11  
+
+ 612                  //0x40 |
+ 613                  //0x80 |
+ 614                  0x00
+ 615              },
+ 616              0x26, 0x00,
+ 617              0x50, 0x2A
+ 618          };
+ 619          
+ 620          const uint8_t code ATT_HDL_DIS_PNP_ID[] =
+ 621          {
+ 622              0x00, 0x26,
+ 623              0x2A, 0x50,
+ 624              7,
+ 625              0x01,
+ 626              0xC0  , 0x00,
+ 627              0x00, 0x00,
+ 628              0x00, 0x00
+ 629          };
+ 630          
+ 631          const uint8_t code ATT_HDL_OTA_PRIMARY_SERVICE[] =
+ 632          {
+ 633              0x00, 0x27,
+ 634              0x28, 0x00,
+ 635              2,
+ 636              0xBA, 0xFE
+ 637          };
+ 638          
+ 639          const uint8_t code ATT_HDL_OTA_CHARACTERISTIC_OTA_DATA[] =
+ 640          {
+ 641              0x00, 0x28,
+ 642              0x28, 0x03,
+ 643              5,
+ 644              {
+ 645                  //0x01 |
+ 646                  //0x02 |
+ 647                  0x04 |
+ 648                  //0x08 |
+ 649                  0x10 |
+ 650                  //0x20 |
+ 651                  //0x40 |
+ 652                  //0x80 |
+ 653                  0x00
+ 654              },
+ 655              0x29, 0x00,
+ 656              0x10, 0xFA
+ 657          };
+ 658          
+ 659          const uint8_t code ATT_HDL_OTA_OTA_DATA_INIT[] =
+ 660          {
+ 661              0x00, 0x29,
+ 662              0xFA, 0x10,
+ 663              20,
+ 664              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 665              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 666              0x00, 0x00, 0x00, 0x00,
+ 667          };
+ 668          
+ 669          uint8_t xdata att_HDL_OTA_OTA_DATA[] =
+ 670          {
+ 671              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 672              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 673              0x00, 0x00, 0x00, 0x00,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 12  
+
+ 674          };
+ 675          
+ 676          const uint8_t code ATT_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+ 677          {
+ 678              0x00, 0x2A,
+ 679              0x29, 0x02,
+ 680              2,
+ 681              0x00,
+ 682              0x00
+ 683          };
+ 684          
+ 685          uint8_t xdata att_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+ 686          {
+ 687              0x00, 0x00,
+ 688          };
+ 689          
+ 690          const uint8_t code ATT_HDL_OTA_OTA_DATA_DESCRIPTION[] =
+ 691          {
+ 692              0x00, 0x2B,
+ 693              0x29, 0x01,
+ 694              8,
+ 695              0x4F, 0x54, 0x41, 0x5F, 0x44, 0x41, 0x54, 0x41
+ 696          };
+ 697          
+ 698          const uint8_t code ATT_HDL_OTA_CHARACTERISTIC_OTA_CMD_CONTROL_POINT[] =
+ 699          {
+ 700              0x00, 0x2C,
+ 701              0x28, 0x03,
+ 702              5,
+ 703              {
+ 704                  //0x01 |
+ 705                  //0x02 |
+ 706                  //0x04 |
+ 707                  0x08 |
+ 708                  //0x10 |
+ 709                  0x20 |
+ 710                  //0x40 |
+ 711                  //0x80 |
+ 712                  0x00
+ 713              },
+ 714              0x2D, 0x00,
+ 715                  0x11, 0xFA
+ 716          };
+ 717          
+ 718          const uint8_t code ATT_HDL_OTA_OTA_CMD_CONTROL_POINT_INIT[] =
+ 719          {
+ 720              0x00, 0x2D,
+ 721              0xFA, 0x11,
+ 722              8,
+ 723              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 724          };
+ 725          
+ 726          uint8_t xdata att_HDL_OTA_OTA_CMD_CONTROL_POINT[] =
+ 727          {
+ 728              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 729          };
+ 730          
+ 731          const uint8_t code ATT_HDL_OTA_OTA_CMD_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+ 732          {
+ 733              0x00, 0x2E,
+ 734              0x29, 0x02,
+ 735              2,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 13  
+
+ 736              0x00,
+ 737              0x00
+ 738          };
+ 739          
+ 740          uint8_t xdata att_HDL_OTA_OTA_CMD_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+ 741          {
+ 742              0x00, 0x00
+ 743          };
+ 744          
+ 745          const uint8_t code ATT_HDL_OTA_OTA_CMD_USER_DESCRIPTION[] =
+ 746          {
+ 747              0x00, 0x2F,
+ 748              0x29, 0x01,
+ 749              7,
+ 750              0x4F, 0x54, 0x41, 0x5F, 0x43, 0x4D, 0x44
+ 751          };
+ 752          
+ 753          ///////////////////BAS////////////////////////////////
+ 754          const uint8_t code ATT_HDL_BAS_PRIMARY_SERVICE[] =
+ 755          {
+ 756              0x00, 0x30,                                                                             
+ 757              0x28, 0x00,                                           
+ 758              0x02,
+ 759              0x0F, 0x18                                          
+ 760          };
+ 761          
+ 762          const uint8_t code ATT_HDL_BAS_CHARACTERISTIC_BATTERY_LEVEL[] =
+ 763          {
+ 764              0x00, 0x31,                                                                             
+ 765              0x28, 0x03,                                            
+ 766              0x05,
+ 767              //0x11,
+ 768              {                                                                                               
+ 769                  //0x01 |                                                  
+ 770                  0x02 |                                                         
+ 771                  //0x04 |
+ 772                  //0x08 |
+ 773                  0x10 |
+ 774                  //0x20 |
+ 775                  //0x40 |
+ 776                  //0x80 |
+ 777                  0x00
+ 778              },
+ 779              0x32, 0x00,
+ 780              0x19, 0x2A                                
+ 781          };
+ 782          
+ 783          const uint8_t code ATT_HDL_BAS_BATTERY_LEVEL_INIT[] =
+ 784          {
+ 785              0x00, 0x32,                                                                             
+ 786              0x2A, 0x19,                               
+ 787              0x01,
+ 788              100,                                                                                    
+ 789          };
+ 790          
+ 791          uint8_t xdata att_HDL_BAS_BATTERY_LEVEL[] =
+ 792          {
+ 793              100,                                                                                    
+ 794          };
+ 795          
+ 796          const uint8_t code ATT_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =                 
+ 797          {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 14  
+
+ 798              0x00, 0x33,                                                                             
+ 799              0x29, 0x02,                         //Attribute Type
+ 800              0x02,
+ 801              0x00,                                                                                   
+ 802              0x00                                                                                    
+ 803          };
+ 804          
+ 805          uint8_t xdata att_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+ 806          {
+ 807              //0x00, 0x43,                                                                           
+ 808              //0x29, 0x02,               
+ 809              //0x02,
+ 810              {
+ 811                  //0x01 |
+ 812                  //0x02 |
+ 813                  0x00
+ 814              },                                                                                      
+ 815              0x00                                                                                    
+ 816          };
+ 817          
+ 818          ///////////////////BAS////////////////////////////////
+ 819          ///////////////////HOGP///////////////////////////////
+ 820          #ifdef _PROFILE_HOGP_
+ 821          const uint8_t code ATT_HDL_HIDS_PRIMARY_SERVICE[] =
+ 822          {
+ 823              0x00, (_HOGP_HDL_OFFSET_BASE_+0x00),                                                                  
+             -                 
+ 824              0x28, 0x00,
+ 825              0x02,
+ 826              0x12, 0x18,
+ 827          };
+ 828          
+ 829          const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_HID_INFORMATION[] =
+ 830          {
+ 831              0x00, (_HOGP_HDL_OFFSET_BASE_+0x01),
+ 832              0x28, 0x03,                                   
+ 833              0x05,
+ 834              {                                                                                      
+ 835                  //0x01 |                                         
+ 836                  0x02 |                                                
+ 837                  //0x04 |
+ 838                  //0x08 |
+ 839                  //0x10 |
+ 840                  //0x20 |
+ 841                  //0x40 |
+ 842                  //0x80 |
+ 843                  0x00
+ 844              },
+ 845              (_HOGP_HDL_OFFSET_BASE_+0x02), 0x00,
+ 846              0x4A, 0x2A                     
+ 847          };
+ 848          
+ 849          const uint8_t code ATT_HDL_HIDS_HID_INFORMATION[] =
+ 850          {
+ 851              0x00, (_HOGP_HDL_OFFSET_BASE_+0x02),
+ 852              0x2A, 0x4A,
+ 853              0x04,
+ 854              0x13, 0x02,     
+ 855              0x40,           
+ 856              0x01,
+ 857          };
+ 858          
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 15  
+
+ 859          const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_HID_CONTROL_POINT[] =
+ 860          {
+ 861              0x00, (_HOGP_HDL_OFFSET_BASE_+0x03),
+ 862              0x28, 0x03,                         
+ 863              0x05,
+ 864              {                                                                            
+ 865                  //0x01 |                               
+ 866                  //0x02 |                                    
+ 867                  0x04 |
+ 868                  //0x08 |
+ 869                  //0x10 |
+ 870                  //0x20 |
+ 871                  //0x40 |
+ 872                  //0x80 |
+ 873                  0x00
+ 874              },
+ 875              (_HOGP_HDL_OFFSET_BASE_+0x04), 0x00,
+ 876              0x4C, 0x2A         
+ 877          };
+ 878          
+ 879          const uint8_t code ATT_HDL_HIDS_HID_CONTROL_POINT_INIT[] =
+ 880          {
+ 881              0x00, (_HOGP_HDL_OFFSET_BASE_+0x04),
+ 882              0x2A, 0x4C,                    
+ 883              0x01,
+ 884              0x01,    //0: Suspend, 1: Exit Suspend
+ 885          };
+ 886          
+ 887          
+ 888          uint8_t xdata att_HDL_HIDS_HID_CONTROL_POINT[] =
+ 889          {
+ 890              0x01,    //0: Suspend, 1: Exit Suspend
+ 891          };
+ 892          
+ 893          const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MAP[] =
+ 894          {
+ 895              0x00, (_HOGP_HDL_OFFSET_BASE_+0x05),                                                    
+ 896              0x28, 0x03,                                    
+ 897              0x05,
+ 898              {                                                                                       
+ 899                  //0x01 |                                          
+ 900                  0x02 |                                                 
+ 901                  //0x04 |
+ 902                  //0x08 |
+ 903                  //0x10 |
+ 904                  //0x20 |
+ 905                  //0x40 |
+ 906                  //0x80 |
+ 907                  0x00
+ 908              },
+ 909              (_HOGP_HDL_OFFSET_BASE_+0x06), 0x00,
+ 910              0x4B, 0x2A                           
+ 911          };
+ 912          
+ 913          
+ 914          const uint8_t code ATT_HDL_HIDS_REPORT_MAP[] =    
+ 915          {
+ 916              0x00, (_HOGP_HDL_OFFSET_BASE_+0x06),                                                      
+ 917              0x2A, 0x4B,
+ 918              (SIZE_OF_ATTRIBUTE_VALUE_MS+SIZE_OF_ATTRIBUTE_VALUE_KB+SIZE_OF_ATTRIBUTE_VALUE_CS),
+ 919          #ifdef _PROFILE_HOGP_COMSUMER_                                             
+                  0x05, 0x0C, 0x09, 0x01, 0xA1, 0x01, 0x85, 0x03,                            
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 16  
+
+                  0x19, 0x00, 0x2A, 0x9C, 0x02, 0x15, 0x00, 0x26,
+                  0x9C, 0x02, 0x75, 0x10, 0x95, 0x01, 0x81, 0x00,
+                  0xC0,                                                          
+              #endif                                                                     
+ 925          #ifdef _PROFILE_HOGP_KEYBOARD_
+ 926              0x05, 0x01, 0x09, 0x06, 0xa1, 0x01,
+ 927          #ifdef _PROFILE_HOGP_MULTI_
+                  0x85, (0x00+__PROFILE_HOGP_KEYBOARD_RPIDOFST_),
+              #endif
+ 930              0x05, 0x08, 0x19, 0x01, 0x29, 0x03, 0x75, 0x01,
+ 931              0x95, 0x03, 0x15, 0x00, 0x25, 0x01, 0x91, 0x02,
+ 932              0x95, 0x05, 0x91, 0x01, 0x05, 0x07, 0x19, 0xe0,
+ 933              0x29, 0xe7, 0x95, 0x08, 0x81, 0x02, 0x75, 0x08,
+ 934              0x95, 0x01, 0x81, 0x01, 0x19, 0x00, 0x29, 0x91,
+ 935              0x26, 0xff, 0x00, 0x95, 0x06, 0x81, 0x00, 0xC0,
+ 936          #endif
+ 937          #ifdef _PROFILE_HOGP_MOUSE_                                                
+                  0x05, 0x01, 0x09, 0x02, 0xA1, 0x01, 0x09, 0x01,                            
+                  0xA1, 0x00, 0x05, 0x09, 0x85, 0x02, 0x19, 0x01,                            
+                  0x29, 0x05, 0x15, 0x00, 0x25, 0x01, 0x95, 0x05,                            
+                  0x75, 0x01, 0x81, 0x02, 0x95, 0x01, 0x75, 0x03,                            
+                  0x81, 0x03, 0x05, 0x01, 0x09, 0x30, 0x09, 0x31,                            
+                  0x16, 0x00, 0xF8, 0x26, 0xFF, 0x07, 0x75, 0x10,                            
+                  0x95, 0x02, 0x81, 0x06, 0x09, 0x38, 0x15, 0x80,                            
+                  0x25, 0x7F, 0x75, 0x08, 0x95, 0x01, 0x81, 0x06,                            
+                  0x09, 0x01, 0x15, 0x00, 0x25, 0x03, 0x95, 0x01,                            
+                  0x75, 0x02, 0xB1, 0x02, 0x95, 0x01, 0x75, 0x06,                            
+                  0xB1, 0x03, 0xC0, 0xC0,                                                    
+              #endif      //#ifdef _PROFILE_HOGP_MOUSE_                                  
+ 950          };
+ 951          
+ 952          #ifdef _PROFILE_HOGP_KEYBOARD_
+ 953          const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_REPORT_KBI[] =
+ 954          {
+ 955              0x00, _HOGP_HDL_OFFSET_KB_,                                                
+ 956              0x28, 0x03,                       
+ 957              0x05,
+ 958              {                                                                          
+ 959                  //0x01 |                             
+ 960                  0x02 |                                    
+ 961                  //0x04 |
+ 962                  0x08 |
+ 963                  0x10 |
+ 964                  //0x20 |
+ 965                  //0x40 |
+ 966                  //0x80 |
+ 967                  0x00
+ 968              },
+ 969              (_HOGP_HDL_OFFSET_KB_+0x01), 0x00,
+ 970              0x4D, 0x2A                  
+ 971          };
+ 972          
+ 973          const uint8_t code ATT_HDL_HIDS_REPORT_KBI_INIT[] =
+ 974          {
+ 975              0x00, (_HOGP_HDL_OFFSET_KB_+0x01),
+ 976              0x2A, 0x4D,                             
+ 977              0x08,
+ 978              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+ 979          };
+ 980          
+ 981          uint8_t xdata att_HDL_HIDS_REPORT_KBI[] =
+ 982          {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 17  
+
+ 983              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 984          };
+ 985          
+ 986          const uint8_t code ATT_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =  
+ 987          {
+ 988              0x00, (_HOGP_HDL_OFFSET_KB_+0x02),                                                   
+ 989              0x29, 0x02,              
+ 990              0x02,
+ 991              0x00,                                                                                
+ 992              0x00                                                                                 
+ 993          };
+ 994          
+ 995          uint8_t xdata att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[] =            
+ 996          {
+ 997              0x00, 0x00,
+ 998          };
+ 999          
+1000          const uint8_t code ATT_HDL_HIDS_REPORT_KBI_REPORT_REFERENCE[] =
+1001          {
+1002              0x00, (_HOGP_HDL_OFFSET_KB_+0x03),                         
+1003              0x29, 0x08,       
+1004              0x02,
+1005              (0x00+__PROFILE_HOGP_KEYBOARD_RPIDOFST_),                  
+1006              0x01                                                       
+1007          };
+1008          #endif
+1009          
+1010          #ifdef _PROFILE_HOGP_MOUSE_
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSI[] =
+              {
+                  0x00, _HOGP_HDL_OFFSET_MOUSE_,                                                
+                  0x28, 0x03,                          
+                  0x05,
+                  {                                                                             
+                      //0x01 |                                
+                      0x02 |                                       
+                      //0x04 |
+                      0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_MOUSE_+0x01), 0x00,
+                  0x4D, 0x2A                     
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSI_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x01),                                                         
+                  0x2A, 0x4D,                             
+                  0x06,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+              };
+              
+              uint8_t xdata att_HDL_HIDS_REPORT_MSI[] =
+              {
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =   
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 18  
+
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x02),                                                 
+                  0x29, 0x02,               
+                  0x02,
+                  0x00,                                                                                 
+                  0x00                                                                                  
+              };
+              
+              uint8_t xdata att_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION[] =             
+              {
+                  0x00, 0x00,
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSI_REPORT_REFERENCE[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x03),                      
+                  0x29, 0x08,       
+                  0x02,
+                  0x02,                                                      
+                  0x01                                                       
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSF[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x04),
+                  0x28, 0x03,
+                  0x05,
+                  {                                                                                    
+                      //0x01 |                                       
+                      0x02 | 
+                      //0x04 |
+                      0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_MOUSE_+0x05), 0x00,
+                  0x4D, 0x2A,
+              };
+              
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSF_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x05),
+                  0x2A, 0x4D,
+                  0x01,
+                  0x03
+              };
+              
+              uint8_t xdata att_HDL_HIDS_REPORT_MSF[] =
+              {
+                  0x03,
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSF_REPORT_REFERENCE[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x06),
+                  0x29, 0x08,                                            
+                  0x02,
+                  0x02,                                                                                           
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 19  
+
+                  0x03                                                                                            
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_MSF_USER_DESCRIPTION[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_MOUSE_+0x07),
+                  0x29, 0x01,                             
+                  (0x00+65),
+                  0x42, 0x4C, 0x45, 0x20, 0x4D, 0x4F, 0x55, 0x53,
+                  0x45, 0x20, 0x52, 0x45, 0x53, 0x4F, 0x4C, 0x55,
+                  0x54, 0x49, 0x4F, 0x4E, 0x20, 0x49, 0x4E, 0x20,
+                  0x43, 0x50, 0x49, 0x0A, 0x20, 0x30, 0x20, 0x3D,
+                  0x20, 0x34, 0x30, 0x30, 0x0A, 0x20, 0x31, 0x20,
+                  0x3D, 0x20, 0x38, 0x30, 0x30, 0x0A, 0x20, 0x32,
+                  0x20, 0x3D, 0x20, 0x31, 0x32, 0x30, 0x30, 0x0A,
+                  0x20, 0x33, 0x20, 0x3D, 0x20, 0x31, 0x36, 0x30,
+                  0x30,
+              };
+              #endif
+1126          
+1127          #ifdef _PROFILE_HOGP_COMSUMER_
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_REPORT_CSI[] =
+              {
+                  0x00, _HOGP_HDL_OFFSET_CONSUMER_,                                                   
+                  0x28, 0x03,                                
+                  0x05,
+                  {                                                                                   
+                      //0x01 |                                      
+                      0x02 |                                             
+                      //0x04 |
+                      0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_CONSUMER_+0x01), 0x00,
+                  0x4D, 0x2A                           
+              };
+              
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_CSI_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_CONSUMER_+0x01),                                            
+                  0x2A, 0x4D,                          
+                  0x02,
+                  0x00, 0x00,
+              };
+              
+              
+              uint8_t xdata att_HDL_HIDS_REPORT_CSI[] =
+              {
+                  0x00, 0x00,
+              };
+              
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] = 
+              {
+                  0x00, (_HOGP_HDL_OFFSET_CONSUMER_+0x02),                                            
+                  0x29, 0x02,             
+                  0x02,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 20  
+
+                  0x00,                                                                               
+                  0x00                                                                                
+              };
+              
+              uint8_t xdata att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[] =           
+              {
+                  0x00, 0x00                                                                                
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_REPORT_CSI_REPORT_REFERENCE[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_CONSUMER_+0x03),                                            
+                  0x29, 0x08,                                
+                  0x02,
+                  0x03,                                                                               
+                  0x01                                                                                
+              };
+              #endif
+1187          
+1188          const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_PROTOCOL_MODE[] =
+1189          {
+1190              0x00, _HOGP_HDL_OFFSET_RPT_REF_,                                                                      
+             -              
+1191              0x28, 0x03,                                            
+1192              0x05,
+1193              {                                                                                               
+1194                  //0x01 |                                                  
+1195                  0x02 |                                                         
+1196                  0x04 |
+1197                  //0x08 |
+1198                  //0x10 |
+1199                  //0x20 |
+1200                  //0x40 |
+1201                  //0x80 |
+1202                  0x00
+1203              },
+1204              (_HOGP_HDL_OFFSET_RPT_REF_+0x01), 0x00,
+1205              0x4E, 0x2A                                
+1206          };
+1207          
+1208          const uint8_t code ATT_HDL_HIDS_PROTOCOL_MODE_INIT[] =
+1209          {
+1210              0x00, (_HOGP_HDL_OFFSET_RPT_REF_+0x01),                                                         
+1211              0x2A, 0x4E,                               
+1212              0x01,
+1213              1,                                                                                              
+1214          };
+1215          
+1216          uint8_t xdata att_HDL_HIDS_PROTOCOL_MODE[] =
+1217          {
+1218              1,                                                                                              
+1219          };
+1220          
+1221          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_INPUT_REPORT[] =
+              {
+                  0x00, _HOGP_HDL_OFFSET_BOOT_KB_,                                                                      
+             -               
+                  0x28, 0x03,                                            
+                  0x05,
+                  //0x11,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 21  
+
+                  {                                                                                               
+                      //0x01 |                                                  
+                      0x02 |                                                         
+                      //0x04 |
+                      0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_BOOT_KB_+0x01), 0x00,
+                  0x22, 0x2A                   
+              };
+              
+              
+              const uint8_t code ATT_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_KB_+0x01),                                                               
+             -             
+                  0x2A, 0x22,                              
+                  0x09,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+              };
+              
+              
+              uint8_t xdata att_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT[] =
+              {
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =   
+             -                      
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_KB_+0x02),                                                               
+             -                      
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              
+              uint8_t xdata att_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =             
+             -                   
+              {
+                  0x00,
+                  0x00,                                                                                  
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_OUTPUT_REPORT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_KB_+0x03),                                                      
+                  0x28, 0x03,                                         
+                  0x05,
+                  {                                                                                            
+                      //0x01 |                                               
+                      0x02 |                                                      
+                      0x04 |
+                      0x08 |
+                      //0x10 |
+                      //0x20 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 22  
+
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_BOOT_KB_+0x04), 0x00,
+                  0x32, 0x2A
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_KB_+0x04),                                                               
+             -              
+                  0x2A, 0x32,         
+                  0x01,
+                  0x00,                                                                                   
+              };
+              
+              
+              uint8_t xdata att_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT[] =
+              {
+                  0x00,
+              };
+              #endif
+              
+              #ifdef _PROFILE_HOGP_MOUSE_
+              const uint8_t code ATT_HDL_HIDS_CHARACTERISTIC_BOOT_MOUSE_INPUT_REPORT[] =
+              {
+                  0x00, _HOGP_HDL_OFFSET_BOOT_MS_,                                                                
+                  0x28, 0x03,                                            
+                  0x05,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      0x02 |                                                         
+                      //0x04 |
+                      0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_HOGP_HDL_OFFSET_BOOT_MS_+0x01), 0x00,
+                  0x33, 0x2A              
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_MS_+0x01),                                                 
+                  0x2A, 0x33,             
+                  0x06,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,                                                     
+              };
+              
+              
+              uint8_t xdata att_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT[] =
+              {
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,                                                   
+              };
+              
+              const uint8_t code ATT_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  0x00, (_HOGP_HDL_OFFSET_BOOT_MS_+0x02),                                                         
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 23  
+
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              uint8_t xdata att_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =         
+              {
+                  0x00, 0x00                                                                                           
+              };
+              #endif
+              #endif
+1360          #endif
+1361          
+1362          ///////////////////HOGP///////////////////////////////
+1363          
+1364          //////////////////////////////TaoBao///////////////////////////////////
+1365          #ifdef _PROFILE_TAOBAO_
+              const uint8_t code ATT_HDL_TAOBAO_PRIMARY_SERVICE[] =
+              {
+                  0x00, _TAOBAO_HDL_OFFSET_BASE_,                                                                       
+             -               
+                  0x28, 0x00,                                           
+                  0x02,
+                  0xB3, 0xFE,                                          
+              };
+              
+              const uint8_t code ATT_HDL_TAOBAO_CHARACTERISTIC_DATW[] =
+              {
+                  0x00, (_TAOBAO_HDL_OFFSET_BASE_+0x01),                                                              
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                                                                   
+                      //0x01 |                                                      
+                      //0x02 |                                                           
+                      //0x04 |
+                      0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_TAOBAO_HDL_OFFSET_BASE_+0x02), 0x00,
+                  0xD5, 0xFE                                
+              };
+              
+              
+              const uint8_t code ATT_HDL_TAOBAO_DATW_INIT[] =
+              {
+                  0x00, (_TAOBAO_HDL_OFFSET_BASE_+0x02),                                                              
+                  0xFE, 0xD5,                               
+                  0x14,
+                  0x20, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              uint8_t xdata att_HDL_TAOBAO_DATW[] =
+              {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 24  
+
+                  0x20, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              
+              const uint8_t code ATT_HDL_TAOBAO_CHARACTERISTIC_DATI[] =
+              {
+                  0x00, (_TAOBAO_HDL_OFFSET_BASE_+0x03),                                                            
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                             
+                      //0x01 |                                               
+                      //0x02 |                                               
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_TAOBAO_HDL_OFFSET_BASE_+0x04), 0x00,
+                  0xD6, 0xFE                                
+              };
+              
+              
+              const uint8_t code ATT_HDL_TAOBAO_DATI_INIT[] =
+              {
+                  0x00, (_TAOBAO_HDL_OFFSET_BASE_+0x04),                                                             
+                  0xFE, 0xD6,                               
+                  0x14,
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              uint8_t xdata att_HDL_TAOBAO_DATI[] =
+              {
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              const uint8_t code ATT_HDL_TAOBAO_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =                       
+             -    
+              {
+                  0x00, (_TAOBAO_HDL_OFFSET_BASE_+0x05),                                                                
+             -       
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              
+              uint8_t xdata att_HDL_TAOBAO_DATI_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                     
+             -           
+              {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 25  
+
+                  //0x00, (_UDF01S_HDL_OFFSET_BASE_+0x05),                                                              
+             -                     
+                  //0x29, 0x02,                       
+                  //0x02,
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              
+                  0x00                                                                                            
+              };
+              #endif
+1479          //////////////////////////////TaoBao///////////////////////////////////
+1480          
+1481          //////////////////////////////WeChat///////////////////////////////////
+1482          #ifdef _PROFILE_WECHAT_
+              const uint8_t code ATT_HDL_WECHAT_PRIMARY_SERVICE[] =
+              {
+                  0x00, _WECHAT_HDL_OFFSET_BASE_,                                                                       
+             -              
+                  0x28, 0x00,                                           
+                  0x02,
+                  0xE7, 0xFE,                                          
+              };
+              
+              const uint8_t code ATT_HDL_WECHAT_CHARACTERISTIC_DATW[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x01),                                                              
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                                                                   
+                      //0x01 |                                                      
+                      //0x02 |                                                           
+                      //0x04 |
+                      0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_WECHAT_HDL_OFFSET_BASE_+0x02), 0x00,
+                  0xC7, 0xFE                                
+              };
+              
+              
+              const uint8_t code ATT_HDL_WECHAT_DATW_INIT[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x02),                                                             
+                  0xFE, 0xC7,                               
+                  0x14,
+                  0x20, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              uint8_t xdata att_HDL_WECHAT_DATW[] =
+              {
+                  0x20, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 26  
+
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              
+              const uint8_t code ATT_HDL_WECHAT_CHARACTERISTIC_DATI[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x03),                                                             
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                          
+                      //0x01 |                                               
+                      //0x02 |                                               
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_WECHAT_HDL_OFFSET_BASE_+0x04), 0x00,
+                  0xC8, 0xFE                               
+              };
+              
+              
+              const uint8_t code ATT_HDL_WECHAT_DATI_INIT[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x04),                                                             
+                  0xFE, 0xC8,                               
+                  0x14,
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              
+              uint8_t xdata att_HDL_WECHAT_DATI[] =
+              {
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              const uint8_t code ATT_HDL_WECHAT_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =                       
+             -    
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x05),                                                                
+             -                      
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              
+              uint8_t xdata att_HDL_WECHAT_DATI_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                     
+             -           
+              {
+                  {
+                      //0x01 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 27  
+
+                      //0x02 |
+                      0x00
+                  },                                                                                              
+                  0x00                                                                                            
+              };
+              
+              
+              const uint8_t code ATT_HDL_WECHAT_CHARACTERISTIC_DATR[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x06),
+                  0x28, 0x03,                                            
+                  0x05,
+                  //0x11,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      0x02 |                                                    
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_WECHAT_HDL_OFFSET_BASE_+0x07), 0x00,
+                  0xC9, 0xFE                                
+              };
+              
+              const uint8_t code ATT_HDL_WECHAT_DATR[] =
+              {
+                  0x00, (_WECHAT_HDL_OFFSET_BASE_+0x07),
+                  0xFE, 0xC9,                              
+                  0x14,
+                  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              #ifdef _PROFILE_WECHAT_SIMPLE_MODE_
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRI[] =
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_,//0x41,                                                    
+             -         
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                          
+                      //0x01 |                                               
+                      0x02 |                                               
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x01, 0x00,
+                  0xA1, 0xFE                               
+              };
+              
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 28  
+
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_DATRI_INIT[] =
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x01,//0x42,                                               
+             -              
+                  0xFE, 0xA1,                               
+                  0x14,
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              uint8_t xdata att_HDL_WECHAT_SIMPLEMODE_DATRI[] =
+              {
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13, 0xFF
+              };
+              
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =           
+             -                
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x02,//0x43,                                               
+             -                                       
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              uint8_t xdata att_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                     
+             -           
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              
+                  0x00                                                                                            
+              };
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              /////////////////////Simple mode target/////////////////////////////////////////
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRWI[] =
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x03,//0x44,                                               
+             -              
+                  0x28, 0x03,                                                
+                  0x05,
+                  //0x11,
+                  {                                                          
+                      //0x01 |                                               
+                      0x02 |                                               
+                      //0x04 |
+                      0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x04, 0x00,
+                  0xA2, 0xFE                               
+              };
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 29  
+
+              
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_DATRWI_INIT[] =
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x04,//0x45,                                               
+             -              
+                  0xFE, 0xA2,                               
+                  0x14,
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13
+              };
+              
+              uint8_t xdata att_HDL_WECHAT_SIMPLEMODE_DATRWI[] =
+              {
+                  0x10, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                  0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                  0x10, 0x11, 0x12, 0x13, 0xFF
+              };
+              
+              const uint8_t code ATT_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =          
+             -                 
+              {
+                  0x00, _WECHAT_SIMPLE_MODE_HDL_OFFSET_BASE_+0x05,//0x46,                                               
+             -                                       
+                  0x29, 0x02,                         
+                  0x02,
+                  0x00,                                                                                           
+                  0x00                                                                                            
+              };
+              
+              uint8_t xdata att_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                    
+             -            
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              
+                  0x00                                                                                            
+              };
+              #endif
+              /////////////////////Simple mode target/////////////////////////////////////////
+              
+              #endif
+1745          //////////////////////////////WeChat///////////////////////////////////
+1746          
+1747          //////////////////////////////6UUID///////////////////////////////////
+1748          
+1749          #ifdef _PROFILE_USER_DEFINE_01_
+1750          const uint8_t code ATT_HDL_USER_DEFINE_01_PRIMARY_SERVICE[] =
+1751          {
+1752              0x00, _UDF01S_HDL_OFFSET_BASE_,                                                    
+1753              0x28, 0x00,                                           
+1754              0x02,
+1755              GATT_SPEC_CSTM_SERVICES_UDF01S, GATT_SPEC_CSTM_SERVICES                                          
+1756          };
+1757          
+1758          const uint8_t code ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN01[] =
+1759          {
+1760              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x01),
+1761              0x28, 0x03,                                            
+1762              0x05,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 30  
+
+1763              {                                                                                               
+1764                  //0x01 |                                                  
+1765                  //0x02 |                      
+1766                  //0x04 |
+1767                  //0x08 |
+1768                  0x10 |
+1769                  //0x20 |
+1770                  //0x40 |
+1771                  //0x80 |
+1772                  0x00
+1773              },
+1774              (_UDF01S_HDL_OFFSET_BASE_+0x02), 0x00,
+1775              GATT_SPEC_CSTM_CHARACTERISTIC_UDATAN01, GATT_SPEC_CSTM_CHARACTERISTIC
+1776          };
+1777          
+1778          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAN01_INIT[] =
+1779          {
+1780              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x02),
+1781              GATT_SPEC_CSTM_CHARACTERISTIC, GATT_SPEC_CSTM_CHARACTERISTIC_UDATAN01,
+1782              0x14,
+1783              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1784              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1785              0x00, 0x00, 0x00, 0x00,
+1786          };
+1787          
+1788          uint8_t xdata att_HDL_USER_DEFINE_01_DATAN01[] =
+1789          {
+1790              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1791              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1792              0x00, 0x00, 0x00, 0x00,
+1793          };
+1794          
+1795          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] = 
+1796          {
+1797              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x03),                                                      
+1798              0x29, 0x02,                     
+1799              0x02,
+1800              0x00,                                                                                       
+1801              0x00                                                                                        
+1802          };
+1803          
+1804          uint8_t xdata att_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                      
+             -          
+1805          {
+1806              0x00, 0x00,
+1807          };
+1808          
+1809          const uint8_t code ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW01[] =
+1810          {
+1811              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x04),
+1812              0x28, 0x03,                                            
+1813              0x05,
+1814              {                                                                                               
+1815                  //0x01 |                                                  
+1816                  //0x02 |                      
+1817                  //0x04 |
+1818                  0x08 |
+1819                  //0x10 |
+1820                  //0x20 |
+1821                  //0x40 |
+1822                  //0x80 |
+1823                  0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 31  
+
+1824              },
+1825              (_UDF01S_HDL_OFFSET_BASE_+0x05), 0x00,
+1826              GATT_SPEC_CSTM_CHARACTERISTIC_UDATAW01, GATT_SPEC_CSTM_CHARACTERISTIC
+1827          };
+1828          
+1829          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAW01_INIT[] =
+1830          {
+1831              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x05),
+1832              GATT_SPEC_CSTM_CHARACTERISTIC, GATT_SPEC_CSTM_CHARACTERISTIC_UDATAW01,
+1833              0x14,
+1834              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1835              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1836              0x00, 0x00, 0x00, 0x00,
+1837          };
+1838          
+1839          uint8_t xdata att_HDL_USER_DEFINE_01_DATAW01[] =
+1840          {
+1841              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1842              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1843              0x00, 0x00, 0x00, 0x00,
+1844          };
+1845          
+1846          const uint8_t code ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN02[] =
+1847          {
+1848              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x06),
+1849              0x28, 0x03,                                            
+1850              0x05,
+1851              {                                                                                               
+1852                  //0x01 |                                                  
+1853                  //0x02 |                      
+1854                  //0x04 |
+1855                  //0x08 |
+1856                  0x10 |
+1857                  //0x20 |
+1858                  //0x40 |
+1859                  //0x80 |
+1860                  0x00
+1861              },
+1862              (_UDF01S_HDL_OFFSET_BASE_+0x07), 0x00,
+1863              GATT_SPEC_CSTM_CHARACTERISTIC_UDATAN02, GATT_SPEC_CSTM_CHARACTERISTIC
+1864          };
+1865          
+1866          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAN02_INIT[] =
+1867          {
+1868              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x07),
+1869              GATT_SPEC_CSTM_CHARACTERISTIC, GATT_SPEC_CSTM_CHARACTERISTIC_UDATAN02,
+1870              0x14,
+1871              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1872              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1873              0x00, 0x00, 0x00, 0x00,
+1874          };
+1875          
+1876          uint8_t xdata att_HDL_USER_DEFINE_01_DATAN02[] =
+1877          {
+1878              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1879              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1880              0x00, 0x00, 0x00, 0x00,
+1881          };
+1882          
+1883          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] = 
+1884          {
+1885              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x08),                                                      
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 32  
+
+1886              0x29, 0x02,                     
+1887              0x02,
+1888              0x00,                                                                                       
+1889              0x00                                                                                        
+1890          };
+1891          
+1892          uint8_t xdata att_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION[] =                      
+             -          
+1893          {
+1894              0x00, 0x00,
+1895          };
+1896          
+1897          const uint8_t code ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW02[] =
+1898          {
+1899              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x09),
+1900              0x28, 0x03,                                            
+1901              0x05,
+1902              {                                                                                               
+1903                  //0x01 |                                                  
+1904                  //0x02 |                      
+1905                  //0x04 |
+1906                  0x08 |
+1907                  //0x10 |
+1908                  //0x20 |
+1909                  //0x40 |
+1910                  //0x80 |
+1911                  0x00
+1912              },
+1913              (_UDF01S_HDL_OFFSET_BASE_+0x0A), 0x00,
+1914              GATT_SPEC_CSTM_CHARACTERISTIC_UDATAW02, GATT_SPEC_CSTM_CHARACTERISTIC
+1915          };
+1916          
+1917          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAW02_INIT[] =
+1918          {
+1919              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x0A),
+1920              GATT_SPEC_CSTM_CHARACTERISTIC, GATT_SPEC_CSTM_CHARACTERISTIC_UDATAW02,
+1921              0x14,
+1922              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1923              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1924              0x00, 0x00, 0x00, 0x00,
+1925          };
+1926          
+1927          uint8_t xdata att_HDL_USER_DEFINE_01_DATAW02[] =
+1928          {
+1929              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1930              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+1931              0x00, 0x00, 0x00, 0x00,
+1932          };
+1933          
+1934          const uint8_t code ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAR01[] =
+1935          {
+1936              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x0B),
+1937              0x28, 0x03,                                            
+1938              0x05,
+1939              //0x11,
+1940              {                                                                                               
+1941                  //0x01 |                                                  
+1942                  0x02 |                                                    
+1943                  //0x04 |
+1944                  //0x08 |
+1945                  //0x10 |
+1946                  //0x20 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 33  
+
+1947                  //0x40 |
+1948                  //0x80 |
+1949                  0x00
+1950              },
+1951              (_UDF01S_HDL_OFFSET_BASE_+0x0C), 0x00,
+1952              GATT_SPEC_CSTM_CHARACTERISTIC_UDATAR01, GATT_SPEC_CSTM_CHARACTERISTIC                                
+1953          };
+1954          
+1955          const uint8_t code ATT_HDL_USER_DEFINE_01_DATAR01[] =
+1956          {
+1957              0x00, (_UDF01S_HDL_OFFSET_BASE_+0x0C),
+1958              GATT_SPEC_CSTM_CHARACTERISTIC, GATT_SPEC_CSTM_CHARACTERISTIC_UDATAR01,                              
+1959              0x14,
+1960              0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+1961              0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+1962              0x10, 0x11, 0x12, 0x13
+1963          };
+1964          
+1965          #endif
+1966          //////////////////////////////6UUID///////////////////////////////////
+1967          //////////////////////////////GLS/////////////////////////////////////
+1968          #ifdef _PROFILE_GLS_
+              const uint8_t code ATT_HDL_GLS_PRIMARY_SERVICE[] =
+              {
+                  0x00, _GLS_HDL_OFFSET_BASE_,
+                  0x28, 0x00,
+                  0x02,
+                  0x08, 0x18
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+1), 
+                  0x28, 0x03,
+                  0x05,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      //0x02 |                                                    
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_GLS_HDL_OFFSET_BASE_+2), 0x00,
+                  0x18, 0x2A                          //Attribute Value
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_GLUCOSE_MEASUREMENT_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+2),                                                                //Hand
+             -le 
+                  0x2A, 0x18,                         //Attribute Type
+                  0x11,
+                  0x00,                                                                                           //Flag
+             -s
+                  0x00, 0x00,                                                                                     //Sequ
+             -ence Number
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 34  
+
+                  0x00, 0x00,                                                                                     //UTC 
+             -Time: Year
+                  0x00,                                                                                           //UTC 
+             -Time: Month
+                  0x00,                                                                                           //UTC 
+             -Time: Day
+                  0x00,                                                                                           //UTC 
+             -Time: Hours
+                  0x00,                                                                                           //UTC 
+             -Time: Minutes
+                  0x00,                                                                                           //UTC 
+             -Time: Seconds
+                  0x00, 0x00,                                                                                     //Time
+             - Offset
+                  0x00, 0x00,                                                                                     //Gluc
+             -ose Concentration - units of kg/L (0) or mol/L (1)
+                  0x00,                                                                                           //Type
+             -, Sample Location
+                  0x00, 0x00,                                                                                     //Sens
+             -or Status Annunciation
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_GLUCOSE_MEASUREMENT[] =
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+2),                                                              //Hand
+             -le 
+                  //0x2A, 0x18,                       //Attribute Type
+                  0x11,
+                  0x00,                                                                                           //Flag
+             -s
+                  0x00, 0x00,                                                                                     //Sequ
+             -ence Number
+                  0x00, 0x00,                                                                                     //UTC 
+             -Time: Year
+                  0x00,                                                                                           //UTC 
+             -Time: Month
+                  0x00,                                                                                           //UTC 
+             -Time: Day
+                  0x00,                                                                                           //UTC 
+             -Time: Hours
+                  0x00,                                                                                           //UTC 
+             -Time: Minutes
+                  0x00,                                                                                           //UTC 
+             -Time: Seconds
+                  0x00, 0x00,                                                                                     //Time
+             - Offset
+                  0x00, 0x00,                                                                                     //Gluc
+             -ose Concentration - units of kg/L (0) or mol/L (1)
+                  0x00,                                                                                           //Type
+             -, Sample Location
+                  0x00, 0x00,                                                                                     //Sens
+             -or Status Annunciation
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+3),                                                                //Hand
+             -le 
+                  0x29, 0x02,                         //Attribute Type
+                  0x02,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 35  
+
+                  0x00,                                                                                           //Attr
+             -ibute Value
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+3),                                                              //Hand
+             -le 
+                  //0x29, 0x02,                       //Attribute Type
+                  //0x02,
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              //Attr
+             -ibute Value
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT_CONTEXT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+4), 
+                  0x28, 0x03,
+                  0x05,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      //0x02 |                                                    
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_GLS_HDL_OFFSET_BASE_+5), 0x00,
+                  0x34, 0x2A                  //Attribute Value
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+5),                                                                //Hand
+             -le 
+                  0x2A, 0x34,                 //Attribute Type
+                  0x11,
+                  0x00,                                                                                           //Flag
+             -s
+                  0x00, 0x00,                                                                                     //Sequ
+             -ence Number
+                  0x00,                                                                                           //Exte
+             -nded Flags, Reserved for future use
+                  0x00,                                                                                           //Carb
+             -ohydrate ID
+                  0x00, 0x00,                                                                                     //Carb
+             -ohydrate - units of kilograms
+                  0x00,                                                                                           //Meal
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 36  
+
+                  0x00,                                                                                           //Test
+             -er, Health
+                  0x00, 0x00,                                                                                     //Exer
+             -cise Duration
+                  0x00,                                                                                           //Exer
+             -cise Intensity
+                  0x00,                                                                                           //Medi
+             -cation ID
+                  0x00, 0x00,                                                                                     //Medi
+             -cation - units of kilograms (0) or liters (1)
+                  0x00, 0x00,                                                                                     //HbA1
+             -c
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT[] =
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+5),                                                              //Hand
+             -le 
+                  //0x2A, 0x34,               //Attribute Type
+                  //0x11,
+                  0x00,                                                                                           //Flag
+             -s
+                  0x00, 0x00,                                                                                     //Sequ
+             -ence Number
+                  0x00,                                                                                           //Exte
+             -nded Flags, Reserved for future use
+                  0x00,                                                                                           //Carb
+             -ohydrate ID
+                  0x00, 0x00,                                                                                     //Carb
+             -ohydrate - units of kilograms
+                  0x00,                                                                                           //Meal
+                  0x00,                                                                                           //Test
+             -er, Health
+                  0x00, 0x00,                                                                                     //Exer
+             -cise Duration
+                  0x00,                                                                                           //Exer
+             -cise Intensity
+                  0x00,                                                                                           //Medi
+             -cation ID
+                  0x00, 0x00,                                                                                     //Medi
+             -cation - units of kilograms (0) or liters (1)
+                  0x00, 0x00,                                                                                     //HbA1
+             -c
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+6),                                                                //Hand
+             -le 
+                  0x29, 0x02,                         //Attribute Type
+                  0x02,
+                  0x00,                                                                                           //Attr
+             -ibute Value
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =
+              {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 37  
+
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+6),                                                              //Hand
+             -le 
+                  //0x29, 0x02,                       //Attribute Type
+                  //0x02,
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              //Attr
+             -ibute Value, R/W: Mandatory
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_FEATURE[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+7),                                                                //Hand
+             -le 
+                  0x28, 0x03,                                            //Attribute Type
+                  0x05,
+                  //0x11,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      0x02 |                                                    
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_GLS_HDL_OFFSET_BASE_+8), 0x00,
+                  0x51, 0x2A                              //Attribute Value
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_GLUCOSE_FEATURE_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+8),                                                                //Hand
+             -le 
+                  0x2A, 0x51,                             //Attribute Type
+                  0x02,
+                  {                                                                                               
+                      0x01 |                                                  
+                      0x02 |                                                    
+                      0x04 |
+                      0x08 |
+                      0x10 |
+                      0x20 |
+                      0x40 |
+                      0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      0x02 |
+                      0x04 |
+                      0x00,
+                  },
+              };
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 38  
+
+              
+              /*
+              uint8_t xdata att_HDL_GLS_GLUCOSE_FEATURE[] =
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+8),                                                              //Hand
+             -le 
+                  //0x2A, 0x51,                           //Attribute Type
+                  //0x02,
+                  {                                                                                               
+                      0x01 |                                                  
+                      0x02 |                                                    
+                      0x04 |
+                      0x08 |
+                      0x10 |
+                      0x20 |
+                      0x40 |
+                      0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      0x02 |
+                      //0x04 |
+                      0x00,
+                  },
+              };
+              */
+              
+              const uint8_t code ATT_HDL_GLS_CHARACTERISTIC_RECORD_ACCESS_CONTROL_POINT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+9),                                                                //Hand
+             -le 
+                  0x28, 0x03,                                            //Attribute Type
+                  0x05,
+                  //0x11,
+                  {                                                                                               
+                      //0x01 |                                                  
+                      //0x02 |                                                    
+                      //0x04 |
+                      0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  (_GLS_HDL_OFFSET_BASE_+10), 0x00,
+                  0x52, 0x2A                  //Attribute Value
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+10),                                                               //Hand
+             -le 
+                  0x2A, 0x52,                 //Attribute Type
+                  0x07,
+                  0x00,                                                                                           //Op C
+             -ode
+                  0x00,                                                                                           //Oper
+             -ator
+                  0x00,                                                                                           //Oper
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 39  
+
+             -and, Filter Type
+                  0x00, 0x00, 0x00, 0x00                                                                          //Oper
+             -and, Filter Parameters
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_RECORD_ACCESS_CONTROL_POINT[] =
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+10),                                                             //Hand
+             -le 
+                  //0x2A, 0x52,               //Attribute Type
+                  //0x07,
+                  0x00,                                                                                           //Op C
+             -ode
+                  0x00,                                                                                           //Oper
+             -ator
+                  0x00,                                                                                           //Oper
+             -and, Filter Type
+                  0x00, 0x00, 0x00, 0x00                                                                          //Oper
+             -and, Filter Parameters
+              };
+              
+              
+              const uint8_t code ATT_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  0x00, (_GLS_HDL_OFFSET_BASE_+11),                                                               //Hand
+             -le 
+                  0x29, 0x02,                         //Attribute Type
+                  0x02,
+                  0x00,                                                                                           //Attr
+             -ibute Value
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              
+              
+              uint8_t xdata att_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION[] =             
+             -                   
+              {
+                  //0x00, (_GLS_HDL_OFFSET_BASE_+11),                                                             //Hand
+             -le 
+                  //0x29, 0x02,                       //Attribute Type
+                  //0x02,
+                  {
+                      //0x01 |
+                      //0x02 |
+                      0x00
+                  },                                                                                              //Attr
+             -ibute Value
+                  0x00                                                                                            //Attr
+             -ibute Value,
+              };
+              #endif
+2289          //////////////////////////////GLS/////////////////////////////////////
+2290          
+2291          
+2292          
+2293          
+2294          const uint8_t code ATT_PERMISSION_NULL[] =
+2295          {
+2296              {
+2297                  //0x01 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 40  
+
+2298                  //0x02 |
+2299                  //0x04 |
+2300                  //0x08 |
+2301                  //0x10 |
+2302                  //0x20 |
+2303                  //0x40 |
+2304                  //0x80 |
+2305                  0x00
+2306              },
+2307              {
+2308                  0x01 |
+2309                  //0x02 |
+2310                  0x00
+2311              },
+2312          };
+2313          
+2314          const uint8_t code ATT_PERMISSION_PRIMARY_SERVICE[] =
+2315          {
+2316              {
+2317                  0x01 |
+2318                  //0x02 |
+2319                  //0x04 |
+2320                  //0x08 |
+2321                  //0x10 |
+2322                  //0x20 |
+2323                  //0x40 |
+2324                  //0x80 |
+2325                  0x00
+2326              },
+2327              {
+2328                  0x01 |
+2329                  //0x02 |
+2330                  0x00
+2331              },
+2332          };
+2333          
+2334          const uint8_t code ATT_PERMISSION_CHARACTERISTIC[] =
+2335          {
+2336              {
+2337                  0x01 |
+2338                  //0x02 |
+2339                  //0x04 |
+2340                  //0x08 |
+2341                  //0x10 |
+2342                  //0x20 |
+2343                  //0x40 |
+2344                  //0x80 |
+2345                  0x00
+2346              },
+2347              {
+2348                  0x01 |
+2349                  //0x02 |
+2350                  0x00
+2351              },
+2352          };
+2353          
+2354          const uint8_t code ATT_PERMISSION_HDL_GAP_DEVICE_NAME_INIT[] =
+2355          {
+2356              {
+2357                  0x01 |
+2358                  //0x02 |
+2359                  //0x04 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 41  
+
+2360                  //0x08 |
+2361                  //0x10 |
+2362                  //0x20 |
+2363                  //0x40 |
+2364                  //0x80 |
+2365                  0x00
+2366              },
+2367              {
+2368                  0x01 |
+2369                  //0x02 |
+2370                  0x00
+2371              },
+2372          };
+2373          
+2374          const uint8_t code ATT_PERMISSION_HDL_GAP_APPEARANCE[] =
+2375          {
+2376              {
+2377                  0x01 |
+2378                  //0x02 |
+2379                  //0x04 |
+2380                  //0x08 |
+2381                  //0x010 |
+2382                  //0x020 |
+2383                  //0x040 |
+2384                  //0x080 |
+2385                  0x00
+2386              },
+2387              {
+2388                  0x01 |
+2389                  //0x02 |
+2390                  0x00
+2391              },
+2392          };
+2393          
+2394          const uint8_t code ATT_PERMISSION_HDL_GAP_RECONNECTION_ADDRESS_INIT[] =
+2395          {
+2396              {
+2397                  //0x01 |
+2398                  0x02 |
+2399                  //0x04 |
+2400                  //0x08 |
+2401                  //0x10 |
+2402                  //0x20 |
+2403                  //0x40 |
+2404                  //0x80 |
+2405                  0x00
+2406              },
+2407              {
+2408                  0x01 |
+2409                  //0x02 |
+2410                  0x00
+2411              },
+2412          };
+2413          
+2414          const uint8_t code ATT_PERMISSION_HDL_GAP_PERIPHERAL_PRIVACY_FLAG[] =
+2415          {
+2416              {
+2417                  0x01 |
+2418                  //0x02 |
+2419                  //0x04 |
+2420                  //0x08 |
+2421                  //0x10 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 42  
+
+2422                  //0x20 |
+2423                  //0x40 |
+2424                  //0x80 |
+2425                  0x00
+2426              },
+2427              {
+2428                  0x01 |
+2429                  //0x02 |
+2430                  0x00
+2431              },
+2432          };
+2433          
+2434          const uint8_t code ATT_PERMISSION_HDL_GAP_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS[] =
+2435          {
+2436              {
+2437                  0x01 |
+2438                  //0x02 |
+2439                  //0x04 |
+2440                  //0x08 |
+2441                  //0x10 |
+2442                  //0x20 |
+2443                  //0x40 |
+2444                  //0x80 |
+2445                  0x00
+2446              },
+2447              {
+2448                  0x01 |
+2449                  //0x02 |
+2450                  0x00
+2451              },
+2452          };
+2453          
+2454          
+2455          const uint8_t code ATT_PERMISSION_HDL_GATT_SERVICE_CHANGED_INIT[] =
+2456          {
+2457              {
+2458                  0x01 |
+2459                  //0x02 |
+2460                  //0x04 |
+2461                  //0x08 |
+2462                  //0x10 |
+2463                  //0x20 |
+2464                  //0x40 |
+2465                  //0x80 |
+2466                  0x00
+2467              },
+2468              {
+2469                  0x01 |
+2470                  //0x02 |
+2471                  0x00
+2472              },
+2473          };
+2474          
+2475          const uint8_t code ATT_PERMISSION_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+2476          {
+2477              {
+2478                  0x01 |
+2479                  0x02 |
+2480                  //0x04 |
+2481                  //0x08 |
+2482                  //0x10 |
+2483                  //0x20 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 43  
+
+2484                  //0x40 |
+2485                  //0x80 |
+2486                  0x00
+2487              },
+2488              {
+2489                  0x01 |
+2490                  //0x02 |
+2491                  0x00
+2492              },
+2493          };
+2494          
+2495          
+2496          const uint8_t code ATT_PERMISSION_HDL_DIS_SERIAL_NUMBER_STRING[] =
+2497          {
+2498              {
+2499                  0x01 |
+2500                  //0x02 |
+2501                  //0x04 |
+2502                  //0x08 |
+2503                  //0x10 |
+2504                  //0x20 |
+2505                  //0x40 |
+2506                  //0x80 |
+2507                  0x00
+2508              },
+2509              {
+2510                  0x01 |
+2511                  //0x02 |
+2512                  0x00
+2513              },
+2514          };
+2515          
+2516          const uint8_t code ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT[] =
+2517          {
+2518              {
+2519                  0x01 |
+2520                  //0x02 |
+2521                  //0x04 |
+2522                  //0x08 |
+2523                  //0x10 |
+2524                  //0x20 |
+2525                  //0x40 |
+2526                  //0x80 |
+2527                  0x00
+2528              },
+2529              {
+2530                  0x01 |
+2531                  //0x02 |
+2532                  0x00
+2533              },
+2534          };
+2535          
+2536          const uint8_t code ATT_PERMISSION_HDL_DIS_MANUFACTURER_NAME_STRING[] =
+2537          {
+2538              {
+2539                  0x01 |
+2540                  //0x02 |
+2541                  //0x04 |
+2542                  //0x08 |
+2543                  //0x10 |
+2544                  //0x20 |
+2545                  //0x40 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 44  
+
+2546                  //0x80 |
+2547                  0x00
+2548              },
+2549              {
+2550                  0x01 |
+2551                  //0x02 |
+2552                  0x00
+2553              },
+2554          };
+2555          
+2556          const uint8_t code ATT_PERMISSION_HDL_DIS_SYSTEM_ID[] =
+2557          {
+2558              {
+2559                  0x01 |
+2560                  //0x02 |
+2561                  //0x04 |
+2562                  //0x08 |
+2563                  //0x10 |
+2564                  //0x20 |
+2565                  //0x40 |
+2566                  //0x80 |
+2567                  0x00
+2568              },
+2569              {
+2570                  0x01 |
+2571                  //0x02 |
+2572                  0x00
+2573              },
+2574          };
+2575          
+2576          const uint8_t code ATT_PERMISSION_HDL_DIS_FIRMWARE_REVISION_STRING[] =
+2577          {
+2578              {
+2579                  0x01 |
+2580                  //0x02 |
+2581                  //0x04 |
+2582                  //0x08 |
+2583                  //0x10 |
+2584                  //0x20 |
+2585                  //0x40 |
+2586                  //0x80 |
+2587                  0x00
+2588              },
+2589              {
+2590                  0x01 |
+2591                  //0x02 |
+2592                  0x00
+2593              },
+2594          };
+2595          
+2596          const uint8_t code ATT_PERMISSION_HDL_DIS_MODEL_NUMBER_STRING[] =
+2597          {
+2598              {
+2599                  0x01 |
+2600                  //0x02 |
+2601                  //0x04 |
+2602                  //0x08 |
+2603                  //0x10 |
+2604                  //0x20 |
+2605                  //0x40 |
+2606                  //0x80 |
+2607                  0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 45  
+
+2608              },
+2609              {
+2610                  0x01 |
+2611                  //0x02 |
+2612                  0x00
+2613              },
+2614          };
+2615          
+2616          const uint8_t code ATT_PERMISSION_HDL_DIS_HARDWARE_REVISION_STRING[] =
+2617          {
+2618              {
+2619                  0x01 |
+2620                  //0x02 |
+2621                  //0x04 |
+2622                  //0x08 |
+2623                  //0x10 |
+2624                  //0x20 |
+2625                  //0x40 |
+2626                  //0x80 |
+2627                  0x00
+2628              },
+2629              {
+2630                  0x01 |
+2631                  //0x02 |
+2632                  0x00
+2633              },
+2634          };
+2635          
+2636          const uint8_t code ATT_PERMISSION_HDL_DIS_SOFTWARE_REVISION_STRING[] =
+2637          {
+2638              {
+2639                  0x01 |
+2640                  //0x02 |
+2641                  //0x04 |
+2642                  //0x08 |
+2643                  //0x10 |
+2644                  //0x20 |
+2645                  //0x40 |
+2646                  //0x80 |
+2647                  0x00
+2648              },
+2649              {
+2650                  0x01 |
+2651                  //0x02 |
+2652                  0x00
+2653              },
+2654          };
+2655          
+2656          const uint8_t code ATT_PERMISSION_HDL_DIS_PNP_ID[] =
+2657          {
+2658              {
+2659                  0x01 |
+2660                  //0x02 |
+2661                  //0x04 |
+2662                  //0x08 |
+2663                  //0x10 |
+2664                  //0x20 |
+2665                  //0x40 |
+2666                  //0x80 |
+2667                  0x00
+2668              },
+2669              {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 46  
+
+2670                  0x01 |
+2671                  //0x02 |
+2672                  0x00
+2673              },
+2674          };
+2675          
+2676          
+2677          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_DATA_INIT[] =
+2678          {
+2679              {
+2680                  //0x01 |
+2681                  0x02 |
+2682                  //0x04 |
+2683                  //0x08 |
+2684                  //0x10 |
+2685                  //0x20 |
+2686                  //0x40 |
+2687                  //0x80 |
+2688                  0x00
+2689              },
+2690              {
+2691                  0x01 |
+2692                  //0x02 |
+2693                  0x00
+2694              },
+2695          };
+2696          
+2697          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+2698          {
+2699              {
+2700                  0x01 |
+2701                  0x02 |
+2702                  //0x04 |
+2703                  //0x08 |
+2704                  //0x10 |
+2705                  //0x20 |
+2706                  //0x40 |
+2707                  //0x80 |
+2708                  0x00
+2709              },
+2710              {
+2711                  0x01 |
+2712                  //0x02 |
+2713                  0x00
+2714              },
+2715          };
+2716          
+2717          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_DATA_DESCRIPTION[] =
+2718          {
+2719              {
+2720                  0x01 |
+2721                  //0x02 |
+2722                  //0x04 |
+2723                  //0x08 |
+2724                  //0x10 |
+2725                  //0x20 |
+2726                  //0x40 |
+2727                  //0x80 |
+2728                  0x00
+2729              },
+2730              {
+2731                  0x01 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 47  
+
+2732                  //0x02 |
+2733                  0x00
+2734              },
+2735          };
+2736          
+2737          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_CMD_CONTROL_POINT_INIT[] =
+2738          {
+2739              {
+2740                  //0x01 |
+2741                  0x02 |
+2742                  //0x04 |
+2743                  //0x08 |
+2744                  //0x10 |
+2745                  //0x20 |
+2746                  //0x40 |
+2747                  //0x80 |
+2748                  0x00
+2749              },
+2750              {
+2751                  0x01 |
+2752                  //0x02 |
+2753                  0x00
+2754              },
+2755          };
+2756          
+2757          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_CMD_CP_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+2758          {
+2759              {
+2760                  0x01 |
+2761                  0x02 |
+2762                  //0x04 |
+2763                  //0x08 |
+2764                  //0x10 |
+2765                  //0x20 |
+2766                  //0x40 |
+2767                  //0x80 |
+2768                  0x00
+2769              },
+2770              {
+2771                  0x01 |
+2772                  //0x02 |
+2773                  0x00
+2774              },
+2775          };
+2776          
+2777          const uint8_t code ATT_PERMISSION_HDL_OTA_OTA_CMD_USER_DESCRIPTION[] =
+2778          {
+2779              {
+2780                  0x01 |
+2781                  //0x02 |
+2782                  //0x04 |
+2783                  //0x08 |
+2784                  //0x10 |
+2785                  //0x20 |
+2786                  //0x40 |
+2787                  //0x80 |
+2788                  0x00
+2789              },
+2790              {
+2791                  0x01 |
+2792                  //0x02 |
+2793                  0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 48  
+
+2794              },
+2795          };
+2796          
+2797          
+2798          /////////////////////////BAS//////////////////////////
+2799          const uint8_t code ATT_PERMISSION_HDL_BAS_BATTERY_LEVEL_INIT[] =
+2800          {
+2801              {
+2802                  0x01 |
+2803                  //0x02 |
+2804                  //0x04 |
+2805                  //0x08 |
+2806                  //0x10 |
+2807                  //0x20 |
+2808                  //0x40 |
+2809                  //0x80 |
+2810                  0x00
+2811              },
+2812              {
+2813                  0x01 |
+2814                  //0x02 |
+2815                  0x00
+2816              },
+2817          };
+2818          
+2819          const uint8_t code ATT_PERMISSION_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+2820          {
+2821              {
+2822                  0x01 |
+2823                  0x02 |
+2824                  //0x04 |
+2825                  //0x08 |
+2826                  //0x10 |
+2827                  //0x20 |
+2828                  //0x40 |
+2829                  //0x80 |
+2830                  0x00
+2831              },
+2832              {
+2833                  0x01 |
+2834                  //0x02 |
+2835                  0x00
+2836              },
+2837          };
+2838          
+2839          /////////////////////////BAS//////////////////////////
+2840          /////////////////////////HOGP/////////////////////////
+2841          #ifdef _PROFILE_HOGP_
+2842          const uint8_t code ATT_PERMISSION_HDL_HIDS_HID_INFORMATION[] =
+2843          {
+2844              {
+2845                  //0x01 |
+2846                  //0x02 |
+2847                  //0x04 |
+2848                  //0x08 |
+2849                  0x10 |
+2850                  //0x20 |
+2851                  //0x40 |
+2852                  //0x80 |
+2853                  0x00
+2854              },
+2855              {
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 49  
+
+2856                  0x01 |
+2857                  //0x02 |
+2858                  0x00
+2859              },
+2860          };
+2861          
+2862          const uint8_t code ATT_PERMISSION_HDL_HIDS_HID_CONTROL_POINT_INIT[] =
+2863          {
+2864              {
+2865                  //0x01 |
+2866                  //0x02 |
+2867                  //0x04 |
+2868                  //0x08 |
+2869                  //0x10 |
+2870                  0x20 |
+2871                  //0x40 |
+2872                  //0x80 |
+2873                  0x00
+2874              },
+2875              {
+2876                  0x01 |
+2877                  //0x02 |
+2878                  0x00
+2879              },
+2880          };
+2881          
+2882          const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT_MAP[] =
+2883          {
+2884              {
+2885                  //0x01 |
+2886                  //0x02 |
+2887                  //0x04 |
+2888                  //0x08 |
+2889                  0x10 |
+2890                  //0x20 |
+2891                  //0x40 |
+2892                  //0x80 |
+2893                  0x00
+2894              },
+2895              {
+2896                  0x01 |
+2897                  //0x02 |
+2898                  0x00
+2899              },
+2900          };
+2901          
+2902          const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT_INIT[] =
+2903          {
+2904              {
+2905                  //0x01 |
+2906                  //0x02 |
+2907                  //0x04 |
+2908                  //0x08 |
+2909                  0x10 |
+2910                  0x20 |
+2911                  //0x40 |
+2912                  //0x80 |
+2913                  0x00
+2914              },
+2915              {
+2916                  0x01 |
+2917                  //0x02 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 50  
+
+2918                  0x00
+2919              },
+2920          };
+2921          
+2922          const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+2923          {
+2924              {
+2925                  0x01 |
+2926                  //0x02 |
+2927                  //0x04 |
+2928                  //0x08 |
+2929                  //0x10 |
+2930                  0x20 |
+2931                  //0x40 |
+2932                  //0x80 |
+2933                  0x00
+2934              },
+2935              {
+2936                  0x01 |
+2937                  //0x02 |
+2938                  0x00
+2939              },
+2940          };
+2941          
+2942          const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT_REPORT_REFERENCE[] =
+2943          {
+2944              {
+2945                  //0x01 |
+2946                  //0x02 |
+2947                  //0x04 |
+2948                  //0x08 |
+2949                  0x10 |
+2950                  //0x20 |
+2951                  //0x40 |
+2952                  //0x80 |
+2953                  0x00
+2954              },
+2955              {
+2956                  0x01 |
+2957                  //0x02 |
+2958                  0x00
+2959              },
+2960          };
+2961          
+2962          #ifdef _PROFILE_HOGP_MOUSE_
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT1_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 51  
+
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT1_REPORT_REFERENCE[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_REPORT1_USER_DESCRIPTION[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              #endif
+3023          
+3024          const uint8_t code ATT_PERMISSION_HDL_HIDS_PROTOCOL_MODE_INIT[] =
+3025          {
+3026              {
+3027                  //0x01 |
+3028                  //0x02 |
+3029                  //0x04 |
+3030                  //0x08 |
+3031                  0x10 |
+3032                  0x20 |
+3033                  //0x40 |
+3034                  //0x80 |
+3035                  0x00
+3036              },
+3037              {
+3038                  0x01 |
+3039                  //0x02 |
+3040                  0x00
+3041              },
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 52  
+
+3042          };
+3043          
+3044          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHRCT_CONFIG_INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 53  
+
+              };
+              #endif
+              
+              #ifdef _PROFILE_HOGP_MOUSE_
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHRCT_CONFIG_INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              #endif
+              #endif
+3149          #endif
+3150          /////////////////////////HOGP/////////////////////////
+3151          
+3152          ////////////////////////TaoBao//////////////////////////////////
+3153          #ifdef _PROFILE_TAOBAO_
+              const uint8_t code ATT_PERMISSION_HDL_TAOBAO_DATW[] =
+              {
+                  {
+                      //0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 54  
+
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_TAOBAO_DATI_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_TAOBAO_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  {
+                      0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              #endif
+3214          ////////////////////////TaoBao//////////////////////////////////
+3215          
+3216          ////////////////////////WeChat//////////////////////////////////
+3217          #ifdef _PROFILE_WECHAT_
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_DATW[] =
+              {
+                  {
+                      //0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 55  
+
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_DATI_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  {
+                      0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_DATR[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 56  
+
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              #ifdef _PROFILE_WECHAT_SIMPLE_MODE_
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRI_INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x04  |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  {
+                      0x01 |
+                      0x02 |      //ask_20151105
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              /////////////////////Simple mode target/////////////////////////////////////////
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRWI_INIT[] =
+              {
+                  {
+                      0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 57  
+
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x04  |
+                      0x00
+                  },
+              };
+              
+              const uint8_t code ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] 
+             -=
+              {
+                  {
+                      0x01 |
+                      0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              #endif
+              /////////////////////Simple mode target/////////////////////////////////////////
+              
+              #endif
+3389          ////////////////////////WeChat//////////////////////////////////
+3390          
+3391          ////////////////////////6UUID//////////////////////////////////
+3392          
+3393          #ifdef _PROFILE_USER_DEFINE_01_
+3394          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN01_INIT[] =
+3395          {
+3396              {
+3397                  0x01 |
+3398                  //0x02 |
+3399                  //0x04 |
+3400                  //0x08 |
+3401                  //0x10 |
+3402                  //0x20 |
+3403                  //0x40 |
+3404                  //0x80 |
+3405                  0x00
+3406              },
+3407              {
+3408                  0x01 |
+3409                  //0x02 |
+3410                  0x00
+3411              },
+3412          };
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 58  
+
+3413          
+3414          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACT_CONFIG_INIT[] =
+3415          {
+3416              {
+3417                  0x01 |
+3418                  0x02 |
+3419                  //0x04 |
+3420                  //0x08 |
+3421                  //0x10 |
+3422                  //0x20 |
+3423                  //0x40 |
+3424                  //0x80 |
+3425                  0x00
+3426              },
+3427              {
+3428                  0x01 |
+3429                  //0x02 |
+3430                  0x00
+3431              },
+3432          };
+3433          
+3434          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAW01_INIT[] =
+3435          {
+3436              {
+3437                  //0x01 |
+3438                  0x02 |
+3439                  //0x04 |
+3440                  //0x08 |
+3441                  //0x10 |
+3442                  //0x20 |
+3443                  //0x40 |
+3444                  //0x80 |
+3445                  0x00
+3446              },
+3447              {
+3448                  0x01 |
+3449                  //0x02 |
+3450                  0x00
+3451              },
+3452          };
+3453          
+3454          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN02_INIT[] =
+3455          {
+3456              {
+3457                  0x01 |
+3458                  //0x02 |
+3459                  //0x04 |
+3460                  //0x08 |
+3461                  //0x10 |
+3462                  //0x20 |
+3463                  //0x40 |
+3464                  //0x80 |
+3465                  0x00
+3466              },
+3467              {
+3468                  0x01 |
+3469                  //0x02 |
+3470                  0x00
+3471              },
+3472          };
+3473          
+3474          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACT_CONFIG_INIT[] =
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 59  
+
+3475          {
+3476              {
+3477                  0x01 |
+3478                  0x02 |
+3479                  //0x04 |
+3480                  //0x08 |
+3481                  //0x10 |
+3482                  //0x20 |
+3483                  //0x40 |
+3484                  //0x80 |
+3485                  0x00
+3486              },
+3487              {
+3488                  0x01 |
+3489                  //0x02 |
+3490                  0x00
+3491              },
+3492          };
+3493          
+3494          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAW02_INIT[] =
+3495          {
+3496              {
+3497                  //0x01 |
+3498                  0x02 |
+3499                  //0x04 |
+3500                  //0x08 |
+3501                  //0x10 |
+3502                  //0x20 |
+3503                  //0x40 |
+3504                  //0x80 |
+3505                  0x00
+3506              },
+3507              {
+3508                  0x01 |
+3509                  //0x02 |
+3510                  0x00
+3511              },
+3512          };
+3513          
+3514          const uint8_t code ATT_PERMISSION_HDL_USER_DEFINE_01_DATAR01[] =
+3515          {
+3516              {
+3517                  0x01 |
+3518                  //0x02 |
+3519                  //0x04 |
+3520                  //0x08 |
+3521                  //0x10 |
+3522                  //0x20 |
+3523                  //0x40 |
+3524                  //0x80 |
+3525                  0x00
+3526              },
+3527              {
+3528                  0x01 |
+3529                  //0x02 |
+3530                  0x00
+3531              },
+3532          };
+3533          
+3534          #endif
+3535          ////////////////////////6UUID//////////////////////////////////
+3536          ////////////////////////GLS////////////////////////////////////
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 60  
+
+3537          #ifdef _PROFILE_GLS_
+              const uint8_t code ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 61  
+
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION_
+             -INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_GLUCOSE_FEATURE_INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      //0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_INIT[] =
+              {
+                  {
+                      //0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 62  
+
+                  },
+              };
+              
+              
+              const uint8_t code ATT_PERMISSION_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_
+             -INIT[] =
+              {
+                  {
+                      0x01 |
+                      //0x02 |
+                      //0x04 |
+                      //0x08 |
+                      //0x10 |
+                      0x20 |
+                      //0x40 |
+                      //0x80 |
+                      0x00
+                  },
+                  {
+                      0x01 |
+                      //0x02 |
+                      0x00
+                  },
+              };
+              #endif
+3684          ////////////////////////GLS////////////////////////////////////
+3685          
+3686          code uint8_t code *ATTRIBUTE_SERVER[SIZE_ATTRIBUTE_SERVER] =
+3687          {
+3688              ATT_HDL_INVALID,
+3689              ATT_HDL_GAP_PRIMARY_SERVICE,
+3690              ATT_HDL_GAP_CHARACTERISTIC_DEVICE_NAME,
+3691              ATT_HDL_GAP_DEVICE_NAME_INIT,
+3692              ATT_HDL_GAP_CHARACTERISTIC_APPEARANCE,
+3693              ATT_HDL_GAP_APPEARANCE,
+3694              ATT_HDL_GAP_CHARACTERISTIC_RECONNECTION_ADDRESS,
+3695              ATT_HDL_GAP_RECONNECTION_ADDRESS_INIT,
+3696              ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PRIVACY_FLAG,
+3697              ATT_HDL_GAP_PERIPHERAL_PRIVACY_FLAG,
+3698              ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS,
+3699              ATT_HDL_GAP_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS,
+3700              ATT_HDL_GATT_PRIMARY_SERVICE,
+3701              ATT_HDL_GATT_CHARACTERISTIC_SERVICE_CHANGED,
+3702              ATT_HDL_GATT_SERVICE_CHANGED_INIT,
+3703              ATT_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3704              ATT_HDL_DIS_PRIMARY_SERVICE,
+3705              ATT_HDL_DIS_CHARACTERISTIC_SERIAL_NUMBER_STRING,
+3706              ATT_HDL_DIS_SERIAL_NUMBER_STRING,
+3707              ATT_HDL_DIS_SERIAL_NUMBER_STRING_PRESENTATION_FORMAT,
+3708              ATT_HDL_DIS_CHARACTERISTIC_MANUFACTURER_NAME_STRING,
+3709              ATT_HDL_DIS_MANUFACTURER_NAME_STRING,
+3710              ATT_HDL_DIS_MANUFACTURER_NAME_STRING_PRESENTATION_FORMAT,
+3711              ATT_HDL_DIS_CHARACTERISTIC_SYSTEM_ID,
+3712              ATT_HDL_DIS_SYSTEM_ID,
+3713              ATT_HDL_DIS_CHARACTERISTIC_FIRMWARE_REVISION_STRING,
+3714              ATT_HDL_DIS_FIRMWARE_REVISION_STRING,
+3715              ATT_HDL_DIS_FIRMWARE_REVISION_STRING_PRESENTATION_FORMAT,
+3716              ATT_HDL_DIS_CHARACTERISTIC_MODEL_NUMBER_STRING,
+3717              ATT_HDL_DIS_MODEL_NUMBER_STRING,
+3718              ATT_HDL_DIS_MODEL_NUMBER_STRING_PRESENTATION_FORMAT,
+3719              ATT_HDL_DIS_CHARACTERISTIC_HARDWARE_REVISION_STRING,
+3720              ATT_HDL_DIS_HARDWARE_REVISION_STRING,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 63  
+
+3721              ATT_HDL_DIS_HARDWARE_REVISION_STRING_PRESENTATION_FORMAT,
+3722              ATT_HDL_DIS_CHARACTERISTIC_SOFTWARE_REVISION_STRING,
+3723              ATT_HDL_DIS_SOFTWARE_REVISION_STRING,
+3724              ATT_HDL_DIS_SOFTWARE_REVISION_STRING_PRESENTATION_FORMAT,
+3725              ATT_HDL_DIS_CHARACTERISTIC_PNP_ID,
+3726              ATT_HDL_DIS_PNP_ID,
+3727              ATT_HDL_OTA_PRIMARY_SERVICE,
+3728              ATT_HDL_OTA_CHARACTERISTIC_OTA_DATA,
+3729              ATT_HDL_OTA_OTA_DATA_INIT,
+3730              ATT_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3731              ATT_HDL_OTA_OTA_DATA_DESCRIPTION,
+3732              ATT_HDL_OTA_CHARACTERISTIC_OTA_CMD_CONTROL_POINT,
+3733              ATT_HDL_OTA_OTA_CMD_CONTROL_POINT_INIT,
+3734              ATT_HDL_OTA_OTA_CMD_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3735              ATT_HDL_OTA_OTA_CMD_USER_DESCRIPTION,
+3736          
+3737              ATT_HDL_BAS_PRIMARY_SERVICE,
+3738              ATT_HDL_BAS_CHARACTERISTIC_BATTERY_LEVEL,
+3739              ATT_HDL_BAS_BATTERY_LEVEL_INIT,
+3740              ATT_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3741          #ifdef _PROFILE_HOGP_
+3742              ATT_HDL_HIDS_PRIMARY_SERVICE,
+3743              ATT_HDL_HIDS_CHARACTERISTIC_HID_INFORMATION,
+3744              ATT_HDL_HIDS_HID_INFORMATION,
+3745              ATT_HDL_HIDS_CHARACTERISTIC_HID_CONTROL_POINT,
+3746              ATT_HDL_HIDS_HID_CONTROL_POINT_INIT,
+3747              ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MAP,
+3748              ATT_HDL_HIDS_REPORT_MAP,
+3749          #ifdef _PROFILE_HOGP_KEYBOARD_
+3750              ATT_HDL_HIDS_CHARACTERISTIC_REPORT_KBI,
+3751              ATT_HDL_HIDS_REPORT_KBI_INIT,
+3752              ATT_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3753              ATT_HDL_HIDS_REPORT_KBI_REPORT_REFERENCE,
+3754          #endif
+3755          #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSI,
+                  ATT_HDL_HIDS_REPORT_MSI_INIT,
+                  ATT_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_HIDS_REPORT_MSI_REPORT_REFERENCE,
+                  ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSF,
+                  ATT_HDL_HIDS_REPORT_MSF_INIT,
+                  ATT_HDL_HIDS_REPORT_MSF_REPORT_REFERENCE,
+                  ATT_HDL_HIDS_REPORT_MSF_USER_DESCRIPTION,
+              #endif
+3765          #ifdef _PROFILE_HOGP_COMSUMER_
+                  ATT_HDL_HIDS_CHARACTERISTIC_REPORT_CSI,
+                  ATT_HDL_HIDS_REPORT_CSI_INIT,
+                  ATT_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_HIDS_REPORT_CSI_REPORT_REFERENCE,
+              #endif
+3771              ATT_HDL_HIDS_CHARACTERISTIC_PROTOCOL_MODE,
+3772              ATT_HDL_HIDS_PROTOCOL_MODE_INIT,
+3773          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+                  ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_INPUT_REPORT,
+                  ATT_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_INIT,
+                  ATT_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_OUTPUT_REPORT,
+                  ATT_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT_INIT,
+              #endif
+              #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_HDL_HIDS_CHARACTERISTIC_BOOT_MOUSE_INPUT_REPORT,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 64  
+
+                  ATT_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_INIT,
+                  ATT_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+              #endif
+3787          #endif
+3788          
+3789          ////////////////////////TaoBao//////////////////////////////////
+3790          #ifdef _PROFILE_TAOBAO_
+                  ATT_HDL_TAOBAO_PRIMARY_SERVICE,
+                  ATT_HDL_TAOBAO_CHARACTERISTIC_DATW,
+                  ATT_HDL_TAOBAO_DATW_INIT,
+                  ATT_HDL_TAOBAO_CHARACTERISTIC_DATI,
+                  ATT_HDL_TAOBAO_DATI_INIT,
+                  ATT_HDL_TAOBAO_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+3798          ////////////////////////TaoBao//////////////////////////////////
+3799          ////////////////////////WeChat//////////////////////////////////
+3800          #ifdef _PROFILE_WECHAT_
+                  ATT_HDL_WECHAT_PRIMARY_SERVICE,
+                  ATT_HDL_WECHAT_CHARACTERISTIC_DATW,
+                  ATT_HDL_WECHAT_DATW_INIT,
+                  ATT_HDL_WECHAT_CHARACTERISTIC_DATI,
+                  ATT_HDL_WECHAT_DATI_INIT,
+                  ATT_HDL_WECHAT_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_WECHAT_CHARACTERISTIC_DATR,
+                  ATT_HDL_WECHAT_DATR,
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              #ifdef _PROFILE_WECHAT_SIMPLE_MODE_
+                  ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRI,
+                  ATT_HDL_WECHAT_SIMPLEMODE_DATRI_INIT,
+                  ATT_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              /////////////////////Simple mode target/////////////////////////////////////////
+                  ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRWI,
+                  ATT_HDL_WECHAT_SIMPLEMODE_DATRWI_INIT,
+                  ATT_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+              /////////////////////Simple mode target/////////////////////////////////////////
+              #endif
+3823          ////////////////////////WeChat//////////////////////////////////
+3824          
+3825          ////////////////////////6UUID//////////////////////////////////
+3826          #ifdef _PROFILE_USER_DEFINE_01_
+3827              ATT_HDL_USER_DEFINE_01_PRIMARY_SERVICE,
+3828              ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN01,
+3829              ATT_HDL_USER_DEFINE_01_DATAN01_INIT,
+3830              ATT_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3831              ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW01,
+3832              ATT_HDL_USER_DEFINE_01_DATAW01_INIT,
+3833              ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN02,
+3834              ATT_HDL_USER_DEFINE_01_DATAN02_INIT,
+3835              ATT_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+3836              ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW02,
+3837              ATT_HDL_USER_DEFINE_01_DATAW02_INIT,
+3838              ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAR01,
+3839              ATT_HDL_USER_DEFINE_01_DATAR01,
+3840          #endif
+3841          ////////////////////////6UUID//////////////////////////////////
+3842          ////////////////////////GLS////////////////////////////////////
+3843           #ifdef _PROFILE_GLS_
+                  ATT_HDL_GLS_PRIMARY_SERVICE,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 65  
+
+                  ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT,
+                  ATT_HDL_GLS_GLUCOSE_MEASUREMENT_INIT,
+                  ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT_CONTEXT,
+                  ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_INIT,
+                  ATT_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_FEATURE,
+                  ATT_HDL_GLS_GLUCOSE_FEATURE_INIT,
+                  ATT_HDL_GLS_CHARACTERISTIC_RECORD_ACCESS_CONTROL_POINT,
+                  ATT_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_INIT,
+                  ATT_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+3857          ////////////////////////GLS////////////////////////////////////
+3858          };
+3859          
+3860          
+3861          code uint8_t *ATTRIBUTE_SERVER_param[SIZE_ATTRIBUTE_SERVER] =
+3862          {
+3863                  &ATT_HDL_INVALID[5],
+3864                  &ATT_HDL_GAP_PRIMARY_SERVICE[5],
+3865                  &ATT_HDL_GAP_CHARACTERISTIC_DEVICE_NAME[5],
+3866                  //&ATT_HDL_GAP_DEVICE_NAME_INIT[5],
+3867                  att_HDL_GAP_DEVICE_NAME,
+3868                  &ATT_HDL_GAP_CHARACTERISTIC_APPEARANCE[5],
+3869                  &ATT_HDL_GAP_APPEARANCE[5],
+3870                  &ATT_HDL_GAP_CHARACTERISTIC_RECONNECTION_ADDRESS[5],
+3871              att_HDL_GAP_RECONNECTION_ADDRESS,
+3872                  &ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PRIVACY_FLAG[5],
+3873                  &ATT_HDL_GAP_PERIPHERAL_PRIVACY_FLAG[5],
+3874                  &ATT_HDL_GAP_CHARACTERISTIC_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS[5],
+3875                  &ATT_HDL_GAP_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS[5],
+3876                  &ATT_HDL_GATT_PRIMARY_SERVICE[5],
+3877                  &ATT_HDL_GATT_CHARACTERISTIC_SERVICE_CHANGED[5],
+3878              att_HDL_GATT_SERVICE_CHANGED,
+3879              att_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+3880                  &ATT_HDL_DIS_PRIMARY_SERVICE[5],
+3881                  &ATT_HDL_DIS_CHARACTERISTIC_SERIAL_NUMBER_STRING[5],
+3882                  &ATT_HDL_DIS_SERIAL_NUMBER_STRING[5],
+3883                  &ATT_HDL_DIS_SERIAL_NUMBER_STRING_PRESENTATION_FORMAT[5],
+3884                  &ATT_HDL_DIS_CHARACTERISTIC_MANUFACTURER_NAME_STRING[5],
+3885                  &ATT_HDL_DIS_MANUFACTURER_NAME_STRING[5],
+3886                  &ATT_HDL_DIS_MANUFACTURER_NAME_STRING_PRESENTATION_FORMAT[5],
+3887                  &ATT_HDL_DIS_CHARACTERISTIC_SYSTEM_ID[5],
+3888                  &ATT_HDL_DIS_SYSTEM_ID[5],
+3889                  &ATT_HDL_DIS_CHARACTERISTIC_FIRMWARE_REVISION_STRING[5],
+3890                  &ATT_HDL_DIS_FIRMWARE_REVISION_STRING[5],
+3891                  &ATT_HDL_DIS_FIRMWARE_REVISION_STRING_PRESENTATION_FORMAT[5],
+3892                  &ATT_HDL_DIS_CHARACTERISTIC_MODEL_NUMBER_STRING[5],
+3893                  &ATT_HDL_DIS_MODEL_NUMBER_STRING[5],
+3894                  &ATT_HDL_DIS_MODEL_NUMBER_STRING_PRESENTATION_FORMAT[5],
+3895                  &ATT_HDL_DIS_CHARACTERISTIC_HARDWARE_REVISION_STRING[5],
+3896                  &ATT_HDL_DIS_HARDWARE_REVISION_STRING[5],
+3897                  &ATT_HDL_DIS_HARDWARE_REVISION_STRING_PRESENTATION_FORMAT[5],
+3898                  &ATT_HDL_DIS_CHARACTERISTIC_SOFTWARE_REVISION_STRING[5],
+3899                  &ATT_HDL_DIS_SOFTWARE_REVISION_STRING[5],
+3900                  &ATT_HDL_DIS_SOFTWARE_REVISION_STRING_PRESENTATION_FORMAT[5],
+3901                  &ATT_HDL_DIS_CHARACTERISTIC_PNP_ID[5],
+3902                  &ATT_HDL_DIS_PNP_ID[5],
+3903                  &ATT_HDL_OTA_PRIMARY_SERVICE[5],
+3904                  &ATT_HDL_OTA_CHARACTERISTIC_OTA_DATA[5],
+3905              att_HDL_OTA_OTA_DATA,
+3906              att_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 66  
+
+3907                  &ATT_HDL_OTA_OTA_DATA_DESCRIPTION[5],
+3908                  &ATT_HDL_OTA_CHARACTERISTIC_OTA_CMD_CONTROL_POINT[5],
+3909              att_HDL_OTA_OTA_CMD_CONTROL_POINT,
+3910              att_HDL_OTA_OTA_CMD_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+3911                  &ATT_HDL_OTA_OTA_CMD_USER_DESCRIPTION[5],
+3912          
+3913                  &ATT_HDL_BAS_PRIMARY_SERVICE[5],
+3914                  &ATT_HDL_BAS_CHARACTERISTIC_BATTERY_LEVEL[5],
+3915               att_HDL_BAS_BATTERY_LEVEL,
+3916               att_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION,
+3917          #ifdef _PROFILE_HOGP_
+3918                  &ATT_HDL_HIDS_PRIMARY_SERVICE[5],
+3919                  &ATT_HDL_HIDS_CHARACTERISTIC_HID_INFORMATION[5],
+3920                  &ATT_HDL_HIDS_HID_INFORMATION[5],
+3921                  &ATT_HDL_HIDS_CHARACTERISTIC_HID_CONTROL_POINT[5],
+3922              att_HDL_HIDS_HID_CONTROL_POINT,
+3923                  &ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MAP[5],
+3924                  &ATT_HDL_HIDS_REPORT_MAP[5],
+3925          #ifdef _PROFILE_HOGP_KEYBOARD_
+3926                  &ATT_HDL_HIDS_CHARACTERISTIC_REPORT_KBI[5],
+3927              att_HDL_HIDS_REPORT_KBI,
+3928              att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+3929                  &ATT_HDL_HIDS_REPORT_KBI_REPORT_REFERENCE[5],
+3930          #endif
+3931          #ifdef _PROFILE_HOGP_MOUSE_
+                      &ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSI[5],
+                  att_HDL_HIDS_REPORT_MSI,
+                  att_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                      &ATT_HDL_HIDS_REPORT_MSI_REPORT_REFERENCE[5],
+                      &ATT_HDL_HIDS_CHARACTERISTIC_REPORT_MSF[5],
+                  att_HDL_HIDS_REPORT_MSF,
+                      &ATT_HDL_HIDS_REPORT_MSF_REPORT_REFERENCE[5],
+                      &ATT_HDL_HIDS_REPORT_MSF_USER_DESCRIPTION[5],
+              #endif
+3941          #ifdef _PROFILE_HOGP_COMSUMER_
+                      &ATT_HDL_HIDS_CHARACTERISTIC_REPORT_CSI[5],
+                  att_HDL_HIDS_REPORT_CSI,
+                  att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                      &ATT_HDL_HIDS_REPORT_CSI_REPORT_REFERENCE[5],
+              #endif
+3947                  &ATT_HDL_HIDS_CHARACTERISTIC_PROTOCOL_MODE[5],
+3948              att_HDL_HIDS_PROTOCOL_MODE,
+3949          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+                      &ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_INPUT_REPORT[5],
+                  att_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT,
+                  att_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                      &ATT_HDL_HIDS_CHARACTERISTIC_BOOT_KEYBOARD_OUTPUT_REPORT[5],
+                  att_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT,
+              #endif
+              #ifdef _PROFILE_HOGP_MOUSE_
+                      &ATT_HDL_HIDS_CHARACTERISTIC_BOOT_MOUSE_INPUT_REPORT[5],
+                  att_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT,
+                  att_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+              #endif
+3963          #endif
+3964          
+3965          ////////////////////////TaoBao//////////////////////////////////
+3966          #ifdef _PROFILE_TAOBAO_
+                      &ATT_HDL_TAOBAO_PRIMARY_SERVICE[5],
+                      &ATT_HDL_TAOBAO_CHARACTERISTIC_DATW[5],
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 67  
+
+                      att_HDL_TAOBAO_DATW,
+                      &ATT_HDL_TAOBAO_CHARACTERISTIC_DATI[5],
+                  att_HDL_TAOBAO_DATI,
+                  att_HDL_TAOBAO_DATI_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+3974          ////////////////////////TaoBao//////////////////////////////////
+3975          ////////////////////////WeChat//////////////////////////////////
+3976          #ifdef _PROFILE_WECHAT_
+                      &ATT_HDL_WECHAT_PRIMARY_SERVICE[5],
+                      &ATT_HDL_WECHAT_CHARACTERISTIC_DATW[5],
+                      att_HDL_WECHAT_DATW,
+                      &ATT_HDL_WECHAT_CHARACTERISTIC_DATI[5],
+                  att_HDL_WECHAT_DATI,
+                  att_HDL_WECHAT_DATI_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                      &ATT_HDL_WECHAT_CHARACTERISTIC_DATR[5],
+                      &ATT_HDL_WECHAT_DATR[5],
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              #ifdef _PROFILE_WECHAT_SIMPLE_MODE_
+                      &ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRI[5],
+                  att_HDL_WECHAT_SIMPLEMODE_DATRI,
+                  att_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              /////////////////////Simple mode target/////////////////////////////////////////
+                      &ATT_HDL_WECHAT_SIMPLEMODE_CHARACTERISTIC_DATRWI[5],
+                  att_HDL_WECHAT_SIMPLEMODE_DATRWI,
+                  att_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+              /////////////////////Simple mode target/////////////////////////////////////////
+              #endif
+3999          ////////////////////////WeChat//////////////////////////////////
+4000          
+4001          ////////////////////////6UUID//////////////////////////////////
+4002          #ifdef _PROFILE_USER_DEFINE_01_
+4003                  &ATT_HDL_USER_DEFINE_01_PRIMARY_SERVICE[5],
+4004                  &ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN01[5],
+4005              att_HDL_USER_DEFINE_01_DATAN01,
+4006              att_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION,
+4007                  &ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW01[5],
+4008              att_HDL_USER_DEFINE_01_DATAW01,
+4009                  &ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAN02[5],
+4010              att_HDL_USER_DEFINE_01_DATAN02,
+4011              att_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION,
+4012                  &ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAW02[5],
+4013              att_HDL_USER_DEFINE_01_DATAW02,
+4014                  &ATT_HDL_USER_DEFINE_01_CHARACTERISTIC_DATAR01[5],
+4015                  &ATT_HDL_USER_DEFINE_01_DATAR01[5],
+4016          #endif
+4017          ////////////////////////6UUID//////////////////////////////////
+4018          ////////////////////////GLS////////////////////////////////////
+4019           #ifdef _PROFILE_GLS_
+                       &ATT_HDL_GLS_PRIMARY_SERVICE[5],
+                       &ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT[5],
+                   att_HDL_GLS_GLUCOSE_MEASUREMENT,
+                   att_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                       &ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_MEASUREMENT_CONTEXT[5],
+                   att_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT,
+                   att_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                       &ATT_HDL_GLS_CHARACTERISTIC_GLUCOSE_FEATURE[5],
+                       &ATT_HDL_GLS_GLUCOSE_FEATURE_INIT[5],
+                       &ATT_HDL_GLS_CHARACTERISTIC_RECORD_ACCESS_CONTROL_POINT[5],
+                   att_HDL_GLS_RECORD_ACCESS_CONTROL_POINT,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 68  
+
+                   att_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+               #endif
+4033          ////////////////////////GLS////////////////////////////////////
+4034          };
+4035          
+4036          
+4037          code uint8_t code *ATTRIBUTE_SERVER_PERMISSION[SIZE_ATTRIBUTE_SERVER] =
+4038          {
+4039              ATT_PERMISSION_NULL,                                                //ATT_HDL_INVALID,
+4040              ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_GAP_PRIMARY_SERVICE,
+4041              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GAP_CHARACTERISTIC_DEVIC
+             -E_NAME,
+4042              ATT_PERMISSION_HDL_GAP_DEVICE_NAME_INIT,                            //ATT_HDL_GAP_DEVICE_NAME,
+4043              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GAP_CHARACTERISTIC_APPEA
+             -RANCE,
+4044              ATT_PERMISSION_HDL_GAP_APPEARANCE,                                  //ATT_HDL_GAP_APPEARANCE,
+4045              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GAP_CHARACTERISTIC_RECON
+             -NECTION_ADDRESS,
+4046              ATT_PERMISSION_HDL_GAP_RECONNECTION_ADDRESS_INIT,                   //ATT_HDL_GAP_RECONNECTION_ADDRESS
+             -_INIT,
+4047              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GAP_CHARACTERISTIC_PERIP
+             -HERAL_PRIVACY_FLAG,
+4048              ATT_PERMISSION_HDL_GAP_PERIPHERAL_PRIVACY_FLAG,                     //ATT_HDL_GAP_PERIPHERAL_PRIVACY_F
+             -LAG,
+4049              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GAP_CHARACTERISTIC_PERIP
+             -HERAL_PREFERRED_CONNECTION_PARAMETERS,
+4050              ATT_PERMISSION_HDL_GAP_PERIPHERAL_PREFERRED_CONNECTION_PARAMETERS,  //ATT_HDL_GAP_PERIPHERAL_PREFERRED
+             -_CONNECTION_PARAMETERS,
+4051              ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_GATT_PRIMARY_SERVICE,
+4052              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GATT_CHARACTERISTIC_SERV
+             -ICE_CHANGED,
+4053              ATT_PERMISSION_HDL_GATT_SERVICE_CHANGED_INIT,                       //ATT_HDL_GATT_SERVICE_CHANGED_INI
+             -T,
+4054              ATT_PERMISSION_HDL_GATT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,   //ATT_HDL_GATT_CLIENT_CHARACTERIST
+             -IC_CONFIGURATION_INIT
+4055              ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_DIS_PRIMARY_SERVICE,
+4056              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_SERIA
+             -L_NUMBER_STRING,
+4057              ATT_PERMISSION_HDL_DIS_SERIAL_NUMBER_STRING,                        //ATT_HDL_DIS_SERIAL_NUMBER_STRING
+             -,
+4058              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_SERIAL_NUMBER_STRING
+             -_PRESENTATION_FORMAT,
+4059              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_MANUF
+             -ACTURER_NAME_STRING,
+4060              ATT_PERMISSION_HDL_DIS_MANUFACTURER_NAME_STRING,                    //ATT_HDL_DIS_MANUFACTURER_NAME_ST
+             -RING,
+4061              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_MANUFACTURER_NAME_ST
+             -RING_PRESENTATION_FORMAT,
+4062              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_SYSTE
+             -M_ID,
+4063              ATT_PERMISSION_HDL_DIS_SYSTEM_ID,                                   //ATT_HDL_DIS_SYSTEM_ID,
+4064              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_FIRMW
+             -ARE_REVISION_STRING,
+4065              ATT_PERMISSION_HDL_DIS_FIRMWARE_REVISION_STRING,                    //ATT_HDL_DIS_FIRMWARE_REVISION_ST
+             -RING,
+4066              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_FIRMWARE_REVISION_ST
+             -RING_PRESENTATION_FORMAT,
+4067              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_MODEL
+             -_NUMBER_STRING,
+4068              ATT_PERMISSION_HDL_DIS_MODEL_NUMBER_STRING,                         //ATT_HDL_DIS_MODEL_NUMBER_STRING,
+4069              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_MODEL_NUMBER_STRING_
+             -PRESENTATION_FORMAT,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 69  
+
+4070              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_HARDW
+             -ARE_REVISION_STRING,
+4071              ATT_PERMISSION_HDL_DIS_HARDWARE_REVISION_STRING,                    //ATT_HDL_DIS_HARDWARE_REVISION_ST
+             -RING,
+4072              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_HARDWARE_REVISION_ST
+             -RING_PRESENTATION_FORMAT,
+4073              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_SOFTW
+             -ARE_REVISION_STRING,
+4074              ATT_PERMISSION_HDL_DIS_SOFTWARE_REVISION_STRING,                    //ATT_HDL_DIS_SOFTWARE_REVISION_ST
+             -RING,
+4075              ATT_PERMISSION_CHARACTERISTIC_PRESENTATION_FORMAT,                  //ATT_HDL_DIS_SOFTWARE_REVISION_ST
+             -RING_PRESENTATION_FORMAT,
+4076              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_DIS_CHARACTERISTIC_PNP_I
+             -D,
+4077              ATT_PERMISSION_HDL_DIS_PNP_ID,                                      //ATT_HDL_DIS_PNP_ID,
+4078          
+4079              ATT_PERMISSION_PRIMARY_SERVICE,                                             //ATT_HDL_OTA_PRIMARY_SERV
+             -ICE,
+4080              ATT_PERMISSION_CHARACTERISTIC,                                              //ATT_HDL_OTA_CHARACTERIST
+             -IC_OTA_DATA,
+4081              ATT_PERMISSION_HDL_OTA_OTA_DATA_INIT,                                       //ATT_HDL_OTA_OTA_DATA_INI
+             -T,
+4082              ATT_PERMISSION_HDL_OTA_OTA_DATA_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,   //ATT_HDL_OTA_OTA_DATA_CLI
+             -ENT_CHARACTERISTIC_CONFIGURATION_INIT,
+4083              ATT_PERMISSION_HDL_OTA_OTA_DATA_DESCRIPTION,                                //ATT_HDL_OTA_OTA_DATA_DES
+             -CRIPTION,
+4084              ATT_PERMISSION_CHARACTERISTIC,                                              //ATT_HDL_OTA_CHARACTERIST
+             -IC_OTA_CMD_CONTROL_POINT,
+4085              ATT_PERMISSION_HDL_OTA_OTA_CMD_CONTROL_POINT_INIT,                          //ATT_HDL_OTA_OTA_CMD_CONT
+             -ROL_POINT_INIT,
+4086              ATT_PERMISSION_HDL_OTA_OTA_CMD_CP_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT, //ATT_HDL_OTA_OTA_CMD_CONT
+             -ROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,                        
+4087              ATT_PERMISSION_HDL_OTA_OTA_CMD_USER_DESCRIPTION,                            //ATT_HDL_OTA_OTA_CMD_USER
+             -_DESCRIPTION,
+4088          
+4089              ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_BAS_PRIMARY_SERVICE,
+4090              ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_BAS_CHARACTERISTIC_BATTE
+             -RY_LEVEL,
+4091              ATT_PERMISSION_HDL_BAS_BATTERY_LEVEL_INIT,                          //ATT_HDL_BAS_BATTERY_LEVEL_INIT,
+4092              ATT_PERMISSION_HDL_BAS_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,    //ATT_HDL_BAS_CLIENT_CHARACTERISTI
+             -C_CONFIGURATION_INIT
+4093          #ifdef _PROFILE_HOGP_
+4094              ATT_PERMISSION_PRIMARY_SERVICE,
+4095              ATT_PERMISSION_CHARACTERISTIC,
+4096              ATT_PERMISSION_HDL_HIDS_HID_INFORMATION,
+4097              ATT_PERMISSION_CHARACTERISTIC,
+4098              ATT_PERMISSION_HDL_HIDS_HID_CONTROL_POINT_INIT,
+4099              ATT_PERMISSION_CHARACTERISTIC,
+4100              ATT_PERMISSION_HDL_HIDS_REPORT_MAP,
+4101          #ifdef _PROFILE_HOGP_KEYBOARD_
+4102              ATT_PERMISSION_CHARACTERISTIC,
+4103              ATT_PERMISSION_HDL_HIDS_REPORT_INIT,
+4104              ATT_PERMISSION_HDL_HIDS_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+4105              ATT_PERMISSION_HDL_HIDS_REPORT_REPORT_REFERENCE,
+4106          #endif
+4107          #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_INIT,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_REPORT_REFERENCE,
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_REPORT1_INIT,
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 70  
+
+                  ATT_PERMISSION_HDL_HIDS_REPORT1_REPORT_REFERENCE,
+                  ATT_PERMISSION_HDL_HIDS_REPORT1_USER_DESCRIPTION,
+              #endif
+4117          #ifdef _PROFILE_HOGP_COMSUMER_
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_INIT,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_PERMISSION_HDL_HIDS_REPORT_REPORT_REFERENCE,
+              #endif
+4123              ATT_PERMISSION_CHARACTERISTIC,
+4124              ATT_PERMISSION_HDL_HIDS_PROTOCOL_MODE_INIT,
+4125          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_INIT,
+                  ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHRCT_CONFIG_INIT,
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_BOOT_KEYBOARD_OUTPUT_REPORT_INIT,
+              #endif
+              #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_PERMISSION_CHARACTERISTIC,
+                  ATT_PERMISSION_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_INIT,
+                  ATT_PERMISSION_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHRCT_CONFIG_INIT,
+              #endif
+              #endif
+4139          #endif
+4140          
+4141          ////////////////////////TaoBao//////////////////////////////////
+4142          #ifdef _PROFILE_TAOBAO_
+                  ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_UDF01S_PRIMARY_SERVICE,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATR01,
+                  ATT_PERMISSION_HDL_TAOBAO_DATW,                                  //ATT_HDL_UDF01S_UDATR01,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATN01,
+                  ATT_PERMISSION_HDL_TAOBAO_DATI_INIT,                             //ATT_HDL_UDF01S_UDATN01_INIT,
+                  ATT_PERMISSION_HDL_TAOBAO_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+4150          ////////////////////////TaoBao//////////////////////////////////
+4151          ////////////////////////WeChat//////////////////////////////////
+4152          #ifdef _PROFILE_WECHAT_
+                  ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_UDF01S_PRIMARY_SERVICE,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATR01,
+                  ATT_PERMISSION_HDL_WECHAT_DATW,                                  //ATT_HDL_UDF01S_UDATR01,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATN01,
+                  ATT_PERMISSION_HDL_WECHAT_DATI_INIT,                             //ATT_HDL_UDF01S_UDATN01_INIT,
+                  ATT_PERMISSION_HDL_WECHAT_DATI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATR01,
+                  ATT_PERMISSION_HDL_WECHAT_DATR,                                  //ATT_HDL_UDF01S_UDATR01,
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              #ifdef _PROFILE_WECHAT_SIMPLE_MODE_
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+             -ATN01,
+                  ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRI_INIT,                             //ATT_HDL_UDF01S_UDATN01_
+             -INIT,
+                  ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              /////////////////////Simple mode current pedometer measurement//////////////////
+              /////////////////////Simple mode target/////////////////////////////////////////
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_UDF01S_CHARACTERISTIC_UD
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 71  
+
+             -ATN01,
+                  ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRWI_INIT,                             //ATT_HDL_UDF01S_UDATN01
+             -_INIT,
+                  ATT_PERMISSION_HDL_WECHAT_SIMPLEMODE_DATRWI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+              /////////////////////Simple mode target/////////////////////////////////////////
+              #endif
+4174          ////////////////////////WeChat//////////////////////////////////
+4175          
+4176          ////////////////////////6UUID//////////////////////////////////
+4177          #ifdef _PROFILE_USER_DEFINE_01_
+4178              ATT_PERMISSION_PRIMARY_SERVICE,
+4179              ATT_PERMISSION_CHARACTERISTIC,
+4180              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN01_INIT,
+4181              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACT_CONFIG_INIT,
+4182              ATT_PERMISSION_CHARACTERISTIC,
+4183              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAW01_INIT,
+4184              ATT_PERMISSION_CHARACTERISTIC,
+4185              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN02_INIT,
+4186              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACT_CONFIG_INIT,
+4187              ATT_PERMISSION_CHARACTERISTIC,
+4188              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAW02_INIT,
+4189              ATT_PERMISSION_CHARACTERISTIC,
+4190              ATT_PERMISSION_HDL_USER_DEFINE_01_DATAR01,  
+4191          #endif
+4192          ////////////////////////6UUID//////////////////////////////////
+4193          ////////////////////////GLS////////////////////////////////////
+4194          #ifdef _PROFILE_GLS_
+                  ATT_PERMISSION_PRIMARY_SERVICE,                                     //ATT_HDL_GLS_PRIMARY_SERVICE,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GLS_CHARACTERISTIC_GLUCO
+             -SE_MEASUREMENT,
+                  ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_INIT,                         //ATT_HDL_GLS_GLUCOSE_MEASURE
+             -MENT,
+                  ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,            //ATT_
+             -HDL_GLS_GLUCOSE_MEASUREMENT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GLS_CHARACTERISTIC_GLUCO
+             -SE_MEASUREMENT_CONTEXT,
+                  ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_INIT,                 //ATT_HDL_GLS_GLUCOSE_MEASURE
+             -MENT_CONTEXT,
+                  ATT_PERMISSION_HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,    //ATT_
+             -HDL_GLS_GLUCOSE_MEASUREMENT_CONTEXT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GLS_CHARACTERISTIC_GLUCO
+             -SE_FEATURE,
+                  ATT_PERMISSION_HDL_GLS_GLUCOSE_FEATURE_INIT,                             //ATT_HDL_GLS_GLUCOSE_FEATURE
+             -,
+                  ATT_PERMISSION_CHARACTERISTIC,                                      //ATT_HDL_GLS_CHARACTERISTIC_RECOR
+             -D_ACCESS_CONTROL_POINT,
+                  ATT_PERMISSION_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_INIT,            //ATT_HDL_GLS_RECORD_ACCESS_CONTRO
+             -L_POINT_INIT,
+                  ATT_PERMISSION_HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,    //ATT_
+             -HDL_GLS_RECORD_ACCESS_CONTROL_POINT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+4208          ////////////////////////GLS////////////////////////////////////
+4209          };
+4210          
+4211          code uint8_t code *ATTRIBUTE_SERVER_BOND[SIZE_ATTRIBUTE_SERVER_BOND] =
+4212          {
+4213              ATT_HDL_GAP_DEVICE_NAME_INIT,
+4214          #ifdef _PROFILE_HOGP_
+4215          #ifdef _PROFILE_HOGP_COMSUMER_
+                  ATT_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+C51 COMPILER V9.00   SERVICEGEN                                                            07/19/2019 22:46:46 PAGE 72  
+
+4218          #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+                  ATT_HDL_HIDS_REPORT_MSF_INIT,
+              #endif
+4222          #ifdef _PROFILE_HOGP_KEYBOARD_
+4223              ATT_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+4224          #endif
+4225          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+                  ATT_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+              #ifdef _PROFILE_HOGP_MOUSE_
+                  ATT_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION_INIT,
+              #endif
+              #endif
+4233          #endif
+4234          };
+4235          
+4236          code uint8_t *ATTRIBUTE_SERVER_BOND_PARAM[SIZE_ATTRIBUTE_SERVER_BOND] =
+4237          {
+4238              &ATT_HDL_GAP_DEVICE_NAME_INIT[5],
+4239          #ifdef _PROFILE_HOGP_
+4240          #ifdef _PROFILE_HOGP_COMSUMER_
+                  att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+4243          #ifdef _PROFILE_HOGP_MOUSE_
+                  att_HDL_HIDS_REPORT_MSI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+                  att_HDL_HIDS_REPORT_MSF,
+              #endif
+4247          #ifdef _PROFILE_HOGP_KEYBOARD_
+4248              att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION,
+4249          #endif
+4250          #ifdef _PROFILE_HOGP_BOOT_
+              #ifdef _PROFILE_HOGP_KEYBOARD_
+                  att_HDL_HIDS_BOOT_KEYBOARD_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+              #ifdef _PROFILE_HOGP_MOUSE_
+                  att_HDL_HIDS_BOOT_MOUSE_INPUT_REPORT_CLIENT_CHARACTERISTIC_CONFIGURATION,
+              #endif
+              #endif
+4258          #endif
+4259          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   1585    ----
+   XDATA SIZE       =    150    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

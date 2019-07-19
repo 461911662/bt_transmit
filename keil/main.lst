@@ -1,0 +1,641 @@
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN ..\output\main.obj
+COMPILER INVOKED BY: E:\developer kit tool\Keil_v5\C51\BIN\C51.EXE ..\code\source\main.c LARGE OPTIMIZE(9,SIZE) BROWSE N
+                    -OAREGS INTVECTOR(0X0300) INCDIR(..\code\include) DEBUG OBJECTEXTEND PRINT(.\main.lst) TABS(2) OBJECT(..\output\main.obj)
+
+line level    source
+
+   1          /*****************************************************************************
+   2          **               AMICCOM Electronics Corporation Document                   **
+   3          **          Copyright (c) 2011-2015 AMICCOM Electronics Corporation         **
+   4          **                                                                          **
+   5          **      A3,1F,No.1, Li-Hsin 1th Road, Science_Based Industrid Park,         **
+   6          **                       Hsin_Chu City, 300, Taiwan, ROC.                   **
+   7          **                 Tel: 886-3-5785818   Fax: 886-3-5785819                  **
+   8          **         E-mail:info@amiccom.com.tw  http: //www.amiccom.com.tw           **
+   9          *****************************************************************************/
+  10          #include "define.h"
+  11          #include "A8107.h"
+  12          #include "LibFunction.h"
+  13          #include "mcufunction.h"
+  14          #include "IAP.h"
+  15          #include "servicegen.h"
+  16          #include "OTA.h"
+  17          #include "usermcufunction.h"
+  18          
+  19          
+  20          uint8_t xdata HID_report_MS_key_temp;
+  21          uint8_t xdata HID_report_KB_key_temp; /* 键盘 */
+  22          uint8_t xdata isPressedKey = 0;
+  23          
+  24          uint8_t xdata xpresskeyVolup;
+  25          uint8_t xdata xpresskeyVoldown;
+  26          uint8_t xdata xpresskeyVideo;
+  27          uint8_t xdata xpresskeyInvert;
+  28          uint8_t xdata xpresskeyCapture;
+  29          
+  30          uint8_t xdata mousedata;
+  31          
+  32          void _3nop_delay(void);
+  33          void handleCMD(uint8_t *pcBuf);
+  34          void key_handleEvent(void);
+  35          uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
+  36          void RespondMaster(uint8_t *ptrChar, uint8_t DataLen);
+  37          
+  38          #define STRICKCNTLEVEL_UP 600 
+  39          
+  40          #ifdef _PROFILE_HOGP_
+  41          #ifdef _PROFILE_HOGP_COMSUMER_
+              #define HDL_HIDS_REPORT_TAB_CSKEY_L                             0
+              #define HDL_HIDS_REPORT_TAB_CSKEY_H                             1
+              #endif
+  45          
+  46          #ifdef _PROFILE_HOGP_MOUSE_
+              #define HDL_HIDS_REPORT_TAB_KEY_L_R                             0
+              #define HDL_HIDS_REPORT_TAB_DIR_L_R_L                           1
+              #define HDL_HIDS_REPORT_TAB_DIR_L_R_H                           2
+              #define HDL_HIDS_REPORT_TAB_DIR_U_D_L                           3
+              #define HDL_HIDS_REPORT_TAB_DIR_U_D_H                           4
+              #define HDL_HIDS_REPORT_TAB_ROL_U_D                             5
+              #endif
+  54          
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 2   
+
+  55          #ifdef _PROFILE_HOGP_KEYBOARD_
+  56          #define HDL_HIDS_REPORT_TAB_KEY_CTRL                            0
+  57          #define HDL_HIDS_REPORT_TAB_KEY_DATA0                           2
+  58          #define HDL_HIDS_REPORT_TAB_KEY_DATA1                           3
+  59          #define HDL_HIDS_REPORT_TAB_KEY_DATA2                           4
+  60          #define HDL_HIDS_REPORT_TAB_KEY_DATA3                           5
+  61          #define HDL_HIDS_REPORT_TAB_KEY_DATA4                           6
+  62          #define HDL_HIDS_REPORT_TAB_KEY_DATA5                           7
+  63          #endif
+  64          #endif
+  65          
+  66          const uint8_t code HID_RPT_CS_KEY_DEMO[][2] =
+  67          {
+  68              {0xE9, 0x00,},  //vol+
+  69              {0xEA, 0x00,},  //vol-
+  70              {0xE2, 0x00,},  //Mute
+  71              {0xB0, 0x00,},  //Play
+  72              {0xB1, 0x00,},  //Pause
+  73              //{0xB2, 0x00,},  //Record
+  74              {0xB3, 0x00,},  //Fast forward
+  75              {0xB4, 0x00,},  //Rewind
+  76              {0xB5, 0x00,},  //Scan next track
+  77              {0xB6, 0x00,},  //Scan previous track
+  78              {0xB7, 0x00,},  //Stop
+  79              {0xB8, 0x00,},  //Eject
+  80              {0x8A, 0x01,},  //Email reader
+  81              {0x96, 0x01,},  //Internet browser
+  82              {0x9E, 0x01,},  //Terminal lock/screensaver
+  83              {0xC6, 0x01,},  //Research/search browser
+  84              {0x2D, 0x02,},  //Zoom in
+  85          };
+  86          
+  87          /*******************************************************************
+  88           *
+  89           * main - main function
+  90           * Description:
+  91           *      The function is the system entry point. The whole system is
+  92           *      start from here.
+  93           *
+  94           ******************************************************************/
+  95          void main(void)
+  96          {
+  97   1          ADV_InitDef ADV_InitStructure;
+  98   1          
+  99   1          bit isUpdate = FALSE;
+ 100   1          bit isUpdate1 = FALSE;
+ 101   1          bit isWorking = FALSE;
+ 102   1          bit isNeedSleeping = FALSE;
+ 103   1      
+ 104   1          uint16_t xdata usStrickCnt = 0;
+ 105   1          uint8_t xdata   Temp;
+ 106   1          uint8_t xdata   UpdateOTASpeed;
+ 107   1          uint8_t xdata   DataLen;
+ 108   1          uint8_t xdata   AdvFastSpeed = ENABLE;
+ 109   1          uint8_t xdata   *ptrChar = NULL;
+ 110   1        uint16_t xdata   waitpacket_tmp=0, waitpacket_tmp1=0, waitpacket_tmp2=0;
+ 111   1        //while(~P0_4);
+ 112   1      
+ 113   1          /* 1.关闭全局中断 */
+ 114   1          InterruptDisable();
+ 115   1          
+ 116   1          /* 2.初始化MCU    */
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 3   
+
+ 117   1          InitMCU();
+ 118   1          internalRC = 0; /* 0 :Using External RC 32.768KHz ; 1:Using internal RC 32.000KHz */
+ 119   1      
+ 120   1          InitCrystalCL(0x0d);  //AMICCOM CrystalCL 0x32(MD8107-A05)(18pF)/ 0x14(MD8107-A06)(12pF)/ 0x0D(9pF)
+ 121   1          InitRF();
+ 122   1          IAP_Initialize();
+ 123   1          OTA_Initialize();
+ 124   1      
+ 125   1          InitBLE();
+ 126   1          BLE_SetTxPower(0); //level 0 ~ 7 : 0 => -17dBm; 1 => -15dBm; 2 => -10dBm; 3 => -5dBm; 4 => 0dBm; 5 => 
+             -2dBm; 6 => 4dBm; 7 => 7dBm
+ 127   1      
+ 128   1          /* 3.开中断 */
+ 129   1          InterruptEnable();
+ 130   1          EIE |= EKEYINT; /* 使能外部按键中断 */
+ 131   1          EIP |= EKEYPRI; /* 外部中断优先级高 */
+ 132   1          EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
+ 133   1      
+ 134   1          /* 启动0.5s定时器 */
+ 135   1        //IOSEL|=0x08;
+ 136   1        IOSEL=0x00;
+ 137   1        TworTimer=0;
+ 138   1        TworTimerFlag=0; /* 清除TworTimerFlag，每隔0.5秒会被置位 */
+ 139   1        Twor05Timer(ENABLE);
+ 140   1          setIntoSleepFlag(FALSE);
+ 141   1      
+ 142   1        BLE_INT_FLAG=0;  /* 清除该标志位，此标志位可被BLE定时器置位                   */
+ 143   1        OTA_RECONNECT_FLAG = DISABLE; /* 開始 OTA 程序前，自動斷線並重新連線後之提示 FLAG */
+ 144   1              
+ 145   1          //user add code.
+ 146   1          
+ 147   1        while(1)
+ 148   1          {
+ 149   2              OTA_Process();
+ 150   2      
+ 151   2              if(!isIntoSleep())
+ 152   2              {
+ 153   3                  /* User Can Add Code */
+ 154   3                  if(ble_state == STANDBY_STATE)
+ 155   3                  {
+ 156   4                      reset();
+ 157   4                      isWorking = FALSE;
+ 158   4      
+ 159   4                      /* 初始化广播,并开启广播 */
+ 160   4                      ADV_InitStructure.ADV_Timing = 768;//1568; // ADV Interval = (20ms + 0.625ms*ADV_Timing) =
+             - 20ms + 0.625ms*768 = 500ms
+ 161   4                      ADV_InitStructure.ADV_TO = 1500;  // ADV Timeout = ADV Interval * ADV_TO = 20ms*1500 = 30 
+             -sec
+ 162   4                      ADV_InitStructure.ADV_Channel = (TE_ADVCHANNEL)(ADV_CH37 | ADV_CH38 | ADV_CH39);// ;
+ 163   4                      ADV_InitStructure.ADV_Type = ADV_IND;
+ 164   4                      ADV_InitStructure.ADV_RndEnable = DISABLE;
+ 165   4                      ADV_InitStructure.ADV_TOEnable = ENABLE;
+ 166   4                      ADV_InitStructure.ADV_Run = ENABLE;
+ 167   4                      BLE_ADV_Cmd(&ADV_InitStructure);
+ 168   4      
+ 169   4                auth_req = FAIL;
+ 170   4                init_req = FAIL;
+ 171   4                auth_init_finish = FAIL;
+ 172   4                index = 0;
+ 173   4                scale_index = 0;
+ 174   4                KeyWakeup = 0;
+ 175   4                sendscaledata = FAIL;
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 4   
+
+ 176   4                waitpacket=0;
+ 177   4                  }
+ 178   3                  else if(ble_state == ADV_STATE)
+ 179   3                  {
+ 180   4                      UpdateOTASpeed = ENABLE;
+ 181   4      
+ 182   4                      isUpdate = FALSE;
+ 183   4                      isUpdate1 = FALSE;
+ 184   4                      isWorking = FALSE;
+ 185   4      
+ 186   4                      reset();
+ 187   4                  }
+ 188   3                  else if(ble_state == CONNECT_ESTABLISH_STATE)
+ 189   3                  {
+ 190   4                      isWorking = TRUE;
+ 191   4                      isNeedSleeping = FALSE;
+ 192   4                      setIntoSleepFlag(FALSE);
+ 193   4                      
+ 194   4                      if (UpdateOTASpeed)
+ 195   4                      {
+ 196   5                          Temp = (uint8_t)OTA_UpdataSpeed();
+ 197   5      
+ 198   5                          if ((OTA_SUCCESSFUL == Temp) || (OTA_COUNT_MAX == Temp))
+ 199   5                              UpdateOTASpeed = DISABLE;
+ 200   5                      } /* Changing OTA download speeds */
+ 201   4                  
+ 202   4                      if (BLE_writeEventFlag)
+ 203   4                      {
+ 204   5                          ptrChar = BLE_GetWriteEnvet();
+ 205   5                          DataLen = BLE_GetWriteEnvet_Length();
+ 206   5                          RespondMaster(ptrChar, DataLen);
+ 207   5                      }
+ 208   4      
+ 209   4      #ifdef KYE_DEBUG
+ 210   4                      if(P0_3)
+ 211   4                      {
+ 212   5                          P0OE = 0x02;
+ 213   5                          //P0_1 = 0;
+ 214   5                      }
+ 215   4                      if(P0_5)
+ 216   4                      {
+ 217   5                          P0OE &= ~0x02;
+ 218   5                      }
+ 219   4      #endif
+ 220   4                      key_handleEvent();
+ 221   4                  }
+ 222   3      
+ 223   3                  if(TworTimerFlag)
+ 224   3                  {
+ 225   4                      usStrickCnt = usStrickCnt + 1;
+ 226   4                      if(STRICKCNTLEVEL_UP == usStrickCnt)
+ 227   4                      {
+ 228   5                          usStrickCnt = 0;
+ 229   5                          isNeedSleeping = TRUE;
+ 230   5                      }
+ 231   4      
+ 232   4                      if(OTA_RECONNECT_FLAG == DISABLE)
+ 233   4                      {
+ 234   5                          if(OTA_START_FLAG==1)
+ 235   5                          _nop_();
+ 236   5                      }
+ 237   4                      TworTimerFlag=0;
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 5   
+
+ 238   4                  }
+ 239   3      
+ 240   3                  if(isNeedSleeping)
+ 241   3                  {
+ 242   4                      //if(ble_state == CONNECT_ESTABLISH_STATE) /* 5分钟未连接关闭蓝牙模块 */
+ 243   4                      //{
+ 244   4                      //    isNeedSleeping = FALSE;
+ 245   4                      //    continue;
+ 246   4                      //}
+ 247   4                      entrySleep();
+ 248   4                      isNeedSleeping = FALSE;
+ 249   4                      //break;
+ 250   4                  }
+ 251   3              }
+ 252   2              else
+ 253   2              {
+ 254   3                  isNeedSleeping = FALSE;
+ 255   3                  _nop_();
+ 256   3              }
+ 257   2      
+ 258   2          }
+ 259   1      }
+ 260          
+ 261          void RespondMaster(uint8_t *ptrChar, uint8_t DataLen)
+ 262          {
+ 263   1          uint8_t xdata i;
+ 264   1          uint8_t xdata result;
+ 265   1          DataLen = DataLen;
+ 266   1      
+ 267   1      #ifdef _PROFILE_USER_DEFINE_01_
+ 268   1          if(ptrChar == &att_HDL_USER_DEFINE_01_DATAW01)
+ 269   1          {
+ 270   2              handleCMD(att_HDL_USER_DEFINE_01_DATAW01);
+ 271   2          }
+ 272   1          else if(ptrChar == &att_HDL_USER_DEFINE_01_DATAW02)
+ 273   1          {
+ 274   2                  if((att_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 275   2                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 276   2                  {
+ 277   3                          for(i=0;i<20;i++)
+ 278   3                                  att_HDL_USER_DEFINE_01_DATAN02[i] = att_HDL_USER_DEFINE_01_DATAW02[i];
+ 279   3      
+ 280   3                          result = BLE_SendData(att_HDL_USER_DEFINE_01_DATAN02,ATT_HDL_USER_DEFINE_01_DATAN02_IN
+             -IT,5);
+ 281   3      
+ 282   3                          if(result == SUCCESS)
+ 283   3                          {
+ 284   4                                  _nop_();
+ 285   4                                  //P0_0 = ~P0_0;
+ 286   4                          }
+ 287   3                          else
+ 288   3                          {
+ 289   4                                  _nop_();
+ 290   4                                  //P0_1 = ~P0_1;
+ 291   4                          }
+ 292   3                  }
+ 293   2      
+ 294   2          }
+ 295   1      #endif
+ 296   1          else
+ 297   1              ;
+ 298   1      
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 6   
+
+ 299   1      }
+ 300          
+ 301          void handleCMD(uint8_t *pcBuf)
+ 302          {
+ 303   1          uint8_t result = 0;
+ 304   1          BLE_CMD_Req_S *pstBLE_CMD_Req = NULL;
+ 305   1          if(NULL == pcBuf)
+ 306   1          {
+ 307   2              return ;
+ 308   2          }
+ 309   1      
+ 310   1          pstBLE_CMD_Req = (BLE_CMD_Req_S *)pcBuf;
+ 311   1          result = checkSum(pcBuf, 20);
+ 312   1          if(0 != result)
+ 313   1          {
+ 314   2              return;
+ 315   2          }
+ 316   1      
+ 317   1          switch(pstBLE_CMD_Req->cmd)
+ 318   1          {
+ 319   2              case BLE0_CODE_FIRST:
+ 320   2                  entrySleep(); /* 进入休眠，等待按键唤醒 */
+ 321   2                  break;
+ 322   2              default:
+ 323   2                  break;
+ 324   2          }
+ 325   1      }
+ 326          
+ 327          uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght)
+ 328          {
+ 329   1          uint8_t i, ucCheckSum=0;
+ 330   1          if(pcBuf == NULL || lenght < 0)
+ 331   1          {
+ 332   2              return 255;
+ 333   2          }
+ 334   1          
+ 335   1          for(i=0; i<lenght; i++)
+ 336   1          {
+ 337   2              ucCheckSum += pcBuf[i]; 
+ 338   2          }
+ 339   1      
+ 340   1          return ucCheckSum;
+ 341   1      }
+ 342          
+ 343          void _3nop_delay(void)
+ 344          {
+ 345   1          _nop_();
+ 346   1          _nop_();
+ 347   1          _nop_();   
+ 348   1      }
+ 349          
+ 350          void key_handleEvent(void)
+ 351          {
+ 352   1          uint8_t xdata result;
+ 353   1          uint16_t i;
+ 354   1      
+ 355   1          /* 键盘处理 */
+ 356   1      
+ 357   1          if(~P0_0)
+ 358   1          {
+ 359   2              for(i=0; i<1000; i++)
+ 360   2                  _3nop_delay(); /* 消抖 */
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 7   
+
+ 361   2      
+ 362   2              if(P0_0)
+ 363   2              {
+ 364   3                  return ;
+ 365   3              }
+ 366   2      
+ 367   2              if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 368   2                  & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 369   2              {
+ 370   3                  /* 照相 */
+ 371   3                  att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x58; /* enter */
+ 372   3                  result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT
+             -_KBI_INIT[4]);
+ 373   3                  if(result == SUCCESS)
+ 374   3                  {
+ 375   4                      xpresskeyCapture = 1;
+ 376   4                  }
+ 377   3              }
+ 378   2      
+ 379   2              do
+ 380   2              {
+ 381   3                  if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 382   3                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 383   3                  {
+ 384   4                      att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+ 385   4                      result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_RE
+             -PORT_KBI_INIT[4]);
+ 386   4                      if(result == SUCCESS)
+ 387   4                      {
+ 388   5                          xpresskeyCapture = 0;
+ 389   5                      }
+ 390   4                  }
+ 391   3              }while(xpresskeyCapture);        
+ 392   2      
+ 393   2              do
+ 394   2              {
+ 395   3                  _nop_();
+ 396   3              }while(P0_0);
+ 397   2          }
+ 398   1      
+ 399   1          if(P0_5)
+ 400   1          //if(~P0_5)
+ 401   1          {
+ 402   2              for(i=0; i<1000; i++)
+ 403   2                  _3nop_delay(); /* 消抖 */
+ 404   2      
+ 405   2              //if(P0_5)
+ 406   2              if(~P0_5)
+ 407   2              {
+ 408   3                  return ;
+ 409   3              }
+ 410   2      
+ 411   2              if(1 != isPressedKey)
+ 412   2              {
+ 413   3                  return;
+ 414   3              }
+ 415   2              
+ 416   2              if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 417   2                  & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 418   2              {
+ 419   3                  /* 焦距+ */
+ 420   3                  att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x80; /* Volume+ */
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 8   
+
+ 421   3                  result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT
+             -_KBI_INIT[4]);
+ 422   3                  if(result == SUCCESS)
+ 423   3                  {
+ 424   4                      xpresskeyVolup = 1;
+ 425   4                  }
+ 426   3              }
+ 427   2      
+ 428   2              do
+ 429   2              {
+ 430   3                  if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 431   3                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 432   3                  {
+ 433   4                      att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+ 434   4                      result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_RE
+             -PORT_KBI_INIT[4]);
+ 435   4                      if(result == SUCCESS)
+ 436   4                      {
+ 437   5                          xpresskeyVolup = 0;
+ 438   5                      }
+ 439   4                  }
+ 440   3              }while(xpresskeyVolup);
+ 441   2      
+ 442   2              do
+ 443   2              {
+ 444   3                  _nop_();
+ 445   3              }while(P0_5);
+ 446   2              
+ 447   2              isPressedKey = 0;
+ 448   2          }
+ 449   1      
+ 450   1          if(P0_3)
+ 451   1          //if(~P0_3)
+ 452   1          {
+ 453   2              for(i=0; i<1000; i++)
+ 454   2                  _3nop_delay(); /* 消抖 */
+ 455   2      
+ 456   2              if(~P0_3)
+ 457   2              //if(P0_3)
+ 458   2              {
+ 459   3                  return ;
+ 460   3              }
+ 461   2      
+ 462   2              if(0 != isPressedKey)
+ 463   2              {
+ 464   3                  return;
+ 465   3              }
+ 466   2      
+ 467   2              if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 468   2                  & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 469   2              {
+ 470   3                  /* 焦距- */
+ 471   3                  att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x81; /* Volume- */
+ 472   3                  result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT
+             -_KBI_INIT[4]);
+ 473   3                  if(result == SUCCESS)
+ 474   3                  {
+ 475   4                      xpresskeyVoldown = 1;
+ 476   4                  }
+ 477   3              }
+ 478   2              
+ 479   2              do
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 9   
+
+ 480   2              {
+ 481   3                  if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 482   3                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 483   3                  {
+ 484   4                      att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+ 485   4                      result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_RE
+             -PORT_KBI_INIT[4]);
+ 486   4                      if(result == SUCCESS)
+ 487   4                      {
+ 488   5                          xpresskeyVoldown = 0;
+ 489   5                      }
+ 490   4                  }
+ 491   3              }while(xpresskeyVoldown);
+ 492   2      
+ 493   2              do
+ 494   2              {
+ 495   3                  _nop_();
+ 496   3              }while(P0_3);
+ 497   2      
+ 498   2              isPressedKey = 1;
+ 499   2          }
+ 500   1      
+ 501   1          if(~P0_2)
+ 502   1          {
+ 503   2              for(i=0; i<1000; i++)
+ 504   2                  _3nop_delay(); /* 消抖 */
+ 505   2      
+ 506   2              if(P0_2)
+ 507   2              {
+ 508   3                  return ;
+ 509   3              }
+ 510   2      
+ 511   2              if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 512   2                  & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 513   2              {
+ 514   3                  /* 摄像 */
+ 515   3                  att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x21; /* key4 */
+ 516   3                  result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT
+             -_KBI_INIT[4]);
+ 517   3                  if(result == SUCCESS)
+ 518   3                  {
+ 519   4                      xpresskeyVideo = 1;
+ 520   4                  }
+ 521   3              }
+ 522   2      
+ 523   2              do
+ 524   2              {
+ 525   3                  if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 526   3                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 527   3                  {
+ 528   4                      att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+ 529   4                      result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_RE
+             -PORT_KBI_INIT[4]);
+ 530   4                      if(result == SUCCESS)
+ 531   4                      {
+ 532   5                          xpresskeyVideo = 0;
+ 533   5                      }
+ 534   4                  }
+ 535   3              }while(xpresskeyVideo);
+ 536   2      
+ 537   2              do
+ 538   2              {
+C51 COMPILER V9.00   MAIN                                                                  07/19/2019 22:46:42 PAGE 10  
+
+ 539   3                  _nop_();
+ 540   3              }while(P0_2);
+ 541   2          }
+ 542   1         
+ 543   1          if(~P0_1)
+ 544   1          {
+ 545   2              for(i=0; i<1000; i++)
+ 546   2                  _3nop_delay(); /* 消抖 */
+ 547   2      
+ 548   2              if(P0_1)
+ 549   2              {
+ 550   3                  return ;
+ 551   3              }
+ 552   2      
+ 553   2              if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 554   2                  & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 555   2              {
+ 556   3                  /* 前后镜头切换 */
+ 557   3                  att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x20; /* key3 */
+ 558   3                  result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT
+             -_KBI_INIT[4]);
+ 559   3                  if(result == SUCCESS)
+ 560   3                  {
+ 561   4                      xpresskeyInvert = 1;
+ 562   4                  }
+ 563   3              }
+ 564   2      
+ 565   2              do
+ 566   2              {
+ 567   3                  if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+ 568   3                      & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+ 569   3                  {
+ 570   4                      att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+ 571   4                      result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_RE
+             -PORT_KBI_INIT[4]);
+ 572   4                      if(result == SUCCESS)
+ 573   4                      {
+ 574   5                          xpresskeyInvert = 0;
+ 575   5                      }
+ 576   4                  }
+ 577   3              }while(xpresskeyInvert);
+ 578   2      
+ 579   2              do
+ 580   2              {
+ 581   3                  _nop_();
+ 582   3              }while(P0_1);
+ 583   2          }
+ 584   1      
+ 585   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1260    ----
+   CONSTANT SIZE    =     32    ----
+   XDATA SIZE       =      9      36
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       4
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -111,7 +111,7 @@ void RFISR(void) interrupt 10
 void KeyINT_ISR(void) interrupt 11
 {
     // User can add code
-    EIF |= 0x10;				// clr keyint flag
+    EIF |= CLEAR_KEYINTFLAG;				/* 清除外部中断标志位 */
 
 #ifdef KYE_DEBUG
     P0OE &= ~0x02;
@@ -126,9 +126,9 @@ void KeyINT_ISR(void) interrupt 11
         return;
     }
 
-    if(ble_state == CONNECT_ESTABLISH_STATE)
-    {
+    //if(ble_state == CONNECT_ESTABLISH_STATE)
+    //{
         /* 按键事件处理 */
-        key_handleEvent();        
-    }
+    //    key_handleEvent();
+    //}
 }

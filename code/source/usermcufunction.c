@@ -17,10 +17,10 @@ void reMCUfun(void)
     InterruptDisable();
 
     /* 确认MUC配置 */
-    P0 = 0x00;
-    P0OE = 0x00;
-    P0PUN = 0x2F;
-    P0WUN |= ~0xD0; /* 禁止引脚唤醒 */
+    P0 = PWUP_P0;
+    P0OE = PWUP_P0OE;
+    P0PUN = PWUP_P0PUN;
+    P0WUN |= ~PWUP_P0WUN; /* 禁止引脚唤醒 */
 
     /*********************************************/
     /*    MCU Frequency setting (Dont Modify)    */
@@ -28,8 +28,8 @@ void reMCUfun(void)
     PCON  |= 0x01;  //Enable CKSE                */
     /*********************************************/
 
-    EIE |= 0x10; /* 使能外部按键中断 */
-    EIP |= 0x10; /* 外部中断优先级高 */
+    EIE |= EKEYINT; /* 使能外部按键中断 */
+    EIP |= EKEYPRI; /* 外部中断优先级高 */
 
     InterruptEnable();
 }
@@ -47,7 +47,7 @@ void entrySleep()
     setIntoSleepFlag(TRUE);
 
     /* 设置引脚唤醒 */
-    P0WUN = 0xD0; /* P0_0 P0_1 P0_2 P0_3 P0_5 is wakeup */
+    P0WUN = PWUP_P0WUN; /* P0_0 P0_1 P0_2 P0_3 P0_5 is wakeup */
 
     /* 失能定时器计时 */
     Twor05Timer(DISABLE);

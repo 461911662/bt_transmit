@@ -10,6 +10,7 @@
 #include "define.h"
 #include "A8107.h"
 #include "LibFunction.h"
+#include "usermcufunction.h"
 
 /*********************************************************************
 ** Global Variables
@@ -84,10 +85,10 @@ void InitMCU(void)
  //   P0OE  = 0xAF;
  //   P0PUN = 0xAF;
  //   P0WUN = 0xFF;
-    P0 = 0x00;
-    P0OE = 0x00;
-    P0PUN = 0xD0; //0x2F;输入浮空
-    P0WUN = 0xD0; //0xFF;引脚不唤醒
+    P0 = PWUP_P0;
+    P0OE = PWUP_P0OE;
+    P0PUN = PWUP_P0PUN; //0x2F;输入浮空
+    P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
     
     P1 	  = 0xFF;
     P1OE  = 0x0C;
@@ -107,9 +108,9 @@ void InitMCU(void)
     RSFLAG = 0x07; /* 清除LVDF,RESETNF,PORF重启标志 */
     check_stable = 0x5AA5;
 
-    EIE |= 0x10; /* 使能外部按键中断 */
-    EIP |= 0x10; /* 外部中断优先级高 */
-    EIF |= 0x10; /* 清除中断标志位 */
+    EIE |= EKEYINT; /* 使能外部按键中断 */
+    EIP |= EKEYPRI; /* 外部中断优先级高 */
+    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
 }
 
 bit isIntoSleep(void)

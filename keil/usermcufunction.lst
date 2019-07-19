@@ -1,0 +1,84 @@
+C51 COMPILER V9.00   USERMCUFUNCTION                                                       07/19/2019 22:46:45 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE USERMCUFUNCTION
+OBJECT MODULE PLACED IN ..\output\usermcufunction.obj
+COMPILER INVOKED BY: E:\developer kit tool\Keil_v5\C51\BIN\C51.EXE ..\code\source\usermcufunction.c LARGE OPTIMIZE(9,SIZ
+                    -E) BROWSE NOAREGS INTVECTOR(0X0300) INCDIR(..\code\include) DEBUG OBJECTEXTEND PRINT(.\usermcufunction.lst) TABS(2) OBJE
+                    -CT(..\output\usermcufunction.obj)
+
+line level    source
+
+   1          #include "usermcufunction.h"
+   2          #include "A8107.h"
+   3          #include "define.h"
+   4          #include "mcufunction.h"
+   5          #include "LibFunction.h"
+   6          
+   7          extern void disable_timer1(void);
+   8          
+   9          void reset(void)
+  10          {
+  11   1          _nop_();
+  12   1      }
+  13          
+  14          void reMCUfun(void)
+  15          {
+  16   1          /* 关外部中断 */
+  17   1          InterruptDisable();
+  18   1      
+  19   1          /* 确认MUC配置 */
+  20   1          P0 = PWUP_P0;
+  21   1          P0OE = PWUP_P0OE;
+  22   1          P0PUN = PWUP_P0PUN;
+  23   1          P0WUN |= ~PWUP_P0WUN; /* 禁止引脚唤醒 */
+  24   1      
+  25   1          /*********************************************/
+  26   1          /*    MCU Frequency setting (Dont Modify)    */
+  27   1          PCONE |= 0x01;  //SYSCLK = 16MHz / 2 = 8MHz  */
+  28   1          PCON  |= 0x01;  //Enable CKSE                */
+  29   1          /*********************************************/
+  30   1      
+  31   1          EIE |= EKEYINT; /* 使能外部按键中断 */
+  32   1          EIP |= EKEYPRI; /* 外部中断优先级高 */
+  33   1      
+  34   1          InterruptEnable();
+  35   1      }
+  36          
+  37          /* 进入休眠模式 */
+  38          void entrySleep()
+  39          {
+  40   1          /* 断开BLE连接 */
+  41   1          if(ble_state == CONNECT_ESTABLISH_STATE)
+  42   1          {
+  43   2              BLE_setTerminate();
+  44   2          }
+  45   1      
+  46   1          /* 设置睡眠flag */
+  47   1          setIntoSleepFlag(TRUE);
+  48   1      
+  49   1          /* 设置引脚唤醒 */
+  50   1          P0WUN = PWUP_P0WUN; /* P0_0 P0_1 P0_2 P0_3 P0_5 is wakeup */
+  51   1      
+  52   1          /* 失能定时器计时 */
+  53   1          Twor05Timer(DISABLE);
+C51 COMPILER V9.00   USERMCUFUNCTION                                                       07/19/2019 22:46:45 PAGE 2   
+
+  54   1      
+  55   1          /* BLE休眠使能 */
+  56   1          BLE_AutoPwrDown_Enable();
+  57   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     57    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,364 @@
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MCUFUNCTION
+OBJECT MODULE PLACED IN ..\output\mcufunction.obj
+COMPILER INVOKED BY: E:\developer kit tool\Keil_v5\C51\BIN\C51.EXE ..\code\source\mcufunction.c LARGE OPTIMIZE(9,SIZE) B
+                    -ROWSE NOAREGS INTVECTOR(0X0300) INCDIR(..\code\include) DEBUG OBJECTEXTEND PRINT(.\mcufunction.lst) TABS(2) OBJECT(..\ou
+                    -tput\mcufunction.obj)
+
+line level    source
+
+   1          /*****************************************************************************
+   2          **               AMICCOM Electronics Corporation Document                   **
+   3          **          Copyright (c) 2011-2014 AMICCOM Electronics Corporation         **
+   4          **                                                                          **
+   5          **      A3,1F,No.1, Li-Hsin 1th Road, Science_Based Industrid Park,         **
+   6          **                       Hsin_Chu City, 300, Taiwan, ROC.                   **
+   7          **                 Tel: 886-3-5785818   Fax: 886-3-5785819                  **
+   8          **         E-mail:info@amiccom.com.tw  http: //www.amiccom.com.tw           **
+   9          *****************************************************************************/
+  10          #include "define.h"
+  11          #include "A8107.h"
+  12          #include "LibFunction.h"
+  13          #include "usermcufunction.h"
+  14          
+  15          /*********************************************************************
+  16          ** Global Variables
+  17          *********************************************************************/
+  18          uint8_t xdata   auth_req;
+  19          uint8_t xdata   init_req;
+  20          uint8_t xdata   index;
+  21          uint8_t xdata   auth_init_finish;
+  22          uint8_t xdata   scale_index;
+  23          uint8_t xdata   KeyWakeup;
+  24          uint8_t xdata   scalebuf[10];
+  25          uint16_t xdata  weightvalue;
+  26          uint32_t xdata  datevalue;
+  27          uint8_t xdata sendscaledata;
+  28          uint8_t xdata waitpacket;
+  29          //////////////////TWOR///////////////////////
+  30          uint8_t xdata TworTimer;
+  31          ///////////////////TWOR//////////////////////
+  32          
+  33          
+  34          static const char ascii[] = "0123456789ABCDEF";
+  35          
+  36          void En_P30_Wakeup_Init(void);
+  37          void En_P30_Wakeup_Enable(void);
+  38          
+  39          bit IntoSleepFlag = FALSE;
+  40          bit RecoveryFlag  = FALSE;
+  41          
+  42          const uint8_t code send_scale_data[60]=
+  43          {
+  44              0x03,0x00,0x34,0xFE,0x01,0x00,0x34,0x27,
+  45              0x12,0x00,0x00,0x0A,0x00,0x12,0x26,0x43,
+  46              0x33,0x46,0x45,0x30,
+  47              0x30,0x30,0x36,0x45,0x30,0x35,0x35,0x44,
+  48              0x36,0x42,0x34,0x43,0x41,0x46,0x46,0x30,
+  49              0x30,0x30,0x30,0x30,
+  50              0x30,0x46,0x46,0x30,0x30,0x30,0x30,0x30,
+  51              0x30,0x30,0x30,0x30,0x39,0x18,0x00,0x00,
+  52              0x00,0x00,0x00,0x00
+  53          };
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 2   
+
+  54          
+  55          
+  56          void InitMCU(void);
+  57          /*********************************************************************
+  58          ** InitMCU
+  59          *
+  60          ******************************************************************************
+  61          **  ROUTINE NAME: initMcu                                                   **
+  62          **  I/O define  :                                                           **
+  63          **     Bit|   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   | **
+  64          **  Port 0|  P07  |  P06  |  P05  |  P04  |  P03  |  P02  |  P01  |  P00  | **
+  65          **   I/O  | undef | undef | KEY(I)| undef | KEY(I)| KEY(I)| KEY(I)| KEY(I)| **
+  66          **  Port 1|  P17  |  P16  |  P15  |  P14  |  P13  |  P12  |  P11  |  P10  | **
+  67          **   I/O  | undef | undef | undef | undef | undef | undef | undef | undef | **
+  68          **  Port 3|  P37  |  P36  |  P35  |  P34  |  P33  |  P32  |  P31  |  P30  | **
+  69          **   I/O  | undef | undef | undef | undef | undef | undef | Tx(O) | Rx(I) | **
+  70          ******************************************************************************
+  71          *1.初始化P05(Vol+) P03(Vol-) P02(video) P01(invert) P00(capture)按键
+  72          *2.初始化串口引脚 P30 P31
+  73          *3.初始化系统时钟，使能引脚功能
+  74          *4.清除RSFLAG寄存器标志
+  75          *********************************************************************/
+  76          void InitMCU(void)
+  77          {
+  78   1      /*
+  79   1      ** Port 0/1/2
+  80   1      ** OE  - 0:input     1:output
+  81   1      ** PUN - 0:Pull-up   1:HZ
+  82   1      ** WUn - 0:Wakeup    1:No Wakeup
+  83   1      */
+  84   1       //   P0    = 0xD5;
+  85   1       //   P0OE  = 0xAF;
+  86   1       //   P0PUN = 0xAF;
+  87   1       //   P0WUN = 0xFF;
+  88   1          P0 = PWUP_P0;
+  89   1          P0OE = PWUP_P0OE;
+  90   1          P0PUN = PWUP_P0PUN; //0x2F;输入浮空
+  91   1          P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
+  92   1          
+  93   1          P1    = 0xFF;
+  94   1          P1OE  = 0x0C;
+  95   1          P1PUN = 0x0C;
+  96   1          P1WUN = 0xFF;
+  97   1          
+  98   1          P3    = 0xFF;
+  99   1          P3OE  = 0x02;
+ 100   1          P3PUN = 0x00;
+ 101   1          P3WUN = 0xFF;
+ 102   1          
+ 103   1          /*********************************************/
+ 104   1          /*    MCU Frequency setting (Dont Modify)    */
+ 105   1          PCONE |= 0x01;  //SYSCLK = 16MHz / 2 = 8MHz  */
+ 106   1          PCON  |= 0x01;  //Enable CKSE                */
+ 107   1          /*********************************************/
+ 108   1          RSFLAG = 0x07; /* 清除LVDF,RESETNF,PORF重启标志 */
+ 109   1          check_stable = 0x5AA5;
+ 110   1      
+ 111   1          EIE |= EKEYINT; /* 使能外部按键中断 */
+ 112   1          EIP |= EKEYPRI; /* 外部中断优先级高 */
+ 113   1          EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
+ 114   1      }
+ 115          
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 3   
+
+ 116          bit isIntoSleep(void)
+ 117          {
+ 118   1          return IntoSleepFlag;
+ 119   1      }
+ 120          
+ 121          void setIntoSleepFlag(bit enable)
+ 122          {
+ 123   1          IntoSleepFlag = enable;
+ 124   1      }
+ 125          
+ 126          void En_Recovery(void)
+ 127          {
+ 128   1          //使能0.5s定时
+ 129   1          Twor05Timer(ENABLE);
+ 130   1      }
+ 131          
+ 132          /* 休眠 */
+ 133          void En_Sleep(void)
+ 134          {
+ 135   1        ADV_InitDef ADV_InitStructure;
+ 136   1      
+ 137   1          //禁止广播
+ 138   1        ADV_InitStructure.ADV_RndEnable = DISABLE;
+ 139   1        ADV_InitStructure.ADV_TOEnable = DISABLE;
+ 140   1        ADV_InitStructure.ADV_Run = DISABLE;     // disable adv.
+ 141   1      
+ 142   1        BLE_ADV_Cmd(&ADV_InitStructure);
+ 143   1      
+ 144   1        //禁止0.5秒定时
+ 145   1        Twor05Timer(DISABLE);
+ 146   1      
+ 147   1        En_P30_Wakeup_Init();
+ 148   1      
+ 149   1        //使能P3.0的外部中断
+ 150   1        En_P30_Wakeup_Enable();
+ 151   1        
+ 152   1      
+ 153   1          //休眠
+ 154   1          BLE_AutoPwrDown_Enable();
+ 155   1          //clock 16M -> 8M
+ 156   1        
+ 157   1          PCON |= 0x01;
+ 158   1      }
+ 159          
+ 160          /* 使能外部唤醒中断 */
+ 161          void En_P30_Wakeup_Enable(void)
+ 162          {
+ 163   1          P3WUN &= ~0x01;   // P3_0 ,Enable wakeup
+ 164   1          EIE |= 0x10;        // 打开外部中断
+ 165   1      }
+ 166          
+ 167          /* 初始化外部唤醒 */
+ 168          void En_P30_Wakeup_Init(void)
+ 169          {
+ 170   1              //p3_1    -- 降低功耗
+ 171   1              P3OE &= ~0x02; // P3.1为输入
+ 172   1          P3PUN &= ~0x02; // P3.1为上拉
+ 173   1              P3 &= ~0x02;    // P3.1为低电平
+ 174   1          
+ 175   1          IOSEL &=~0x01;    // P3_1 use for normal IO
+ 176   1          P3OE &=~0x01;
+ 177   1          P3PUN &=~0x01;    // P3_1 pull up
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 4   
+
+ 178   1        
+ 179   1          P3 |= 0x01;
+ 180   1        
+ 181   1        //      PCONE   &= ~0xc0;
+ 182   1          PCONE  |= 0x80;    // rising edge interrupt
+ 183   1      
+ 184   1          EIF |= 0x10;    // CLR KEYINT FLAG
+ 185   1      }
+ 186          
+ 187          void initIsr_timer1(void)
+ 188          {
+ 189   1          CKCON=(CKCON&0xef)|0x10;//set timer1 clock
+ 190   1          TMOD=(TMOD&0x0F)|0x20;//timer1,mode2
+ 191   1      //  TH0 = 56; //100us
+ 192   1      //  TL0 = 56;
+ 193   1          TH1 = 56;
+ 194   1          TL1 = 56;
+ 195   1          TF1 = 0; // Clear any pending Timer1 interrupts
+ 196   1          ET1 = 1; // Enable Timer1 interrupt
+ 197   1          TR1 = 0;//timer0 enable
+ 198   1      }
+ 199          
+ 200          void enable_timer1(void)
+ 201          {
+ 202   1        ET1 = 1; // Enable Timer1 interrupt
+ 203   1          TR1 = 1;//timer1 enable
+ 204   1      }
+ 205          
+ 206          void disable_timer1(void)
+ 207          {
+ 208   1          ET1 = 0;  // Disable Timer1 interrupt
+ 209   1          TR1 = 0;  // timer1 stop
+ 210   1      }
+ 211          
+ 212          /*********************************************************************
+ 213          **  Prcss_Key
+ 214          *********************************************************************/
+ 215          #ifdef _PROFILE_TAOBAO_
+              void Prcss_Weight(void)
+              {
+                uint8_t i,result,tmp;
+                    
+                switch(scale_index)
+                {
+                    case 0x00:
+                        for(i=0;i<20;i++)
+                            att_HDL_TAOBAO_DATI[i] = send_scale_data[i];
+                            
+                        att_HDL_TAOBAO_DATI[10]=scalebuf[0];
+                        scalebuf[0]++;
+              P0_1 = ~P0_1;
+                        result = BLE_SendData(att_HDL_TAOBAO_DATI,ATT_HDL_TAOBAO_DATI_INIT,20);
+                        if(result == SUCCESS)
+                          scale_index++;                      
+                        break;
+              
+                    case 0x01:
+                        for(i=0;i<20;i++)
+                            att_HDL_TAOBAO_DATI[i] = send_scale_data[i+20];
+                        att_HDL_TAOBAO_DATI[1]=scalebuf[1];
+                        att_HDL_TAOBAO_DATI[2]=scalebuf[2];
+                        att_HDL_TAOBAO_DATI[3]=scalebuf[3];
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 5   
+
+                        att_HDL_TAOBAO_DATI[4]=scalebuf[4];
+                        att_HDL_TAOBAO_DATI[8]=scalebuf[5];
+                        att_HDL_TAOBAO_DATI[9]=scalebuf[6];
+                        att_HDL_TAOBAO_DATI[10]=scalebuf[7];
+                        att_HDL_TAOBAO_DATI[11]=scalebuf[8];
+                        att_HDL_TAOBAO_DATI[12]=scalebuf[9];
+              
+                        result = BLE_SendData(att_HDL_TAOBAO_DATI,ATT_HDL_TAOBAO_DATI_INIT,20);
+                        if(result == SUCCESS)
+                        {
+              
+                          weightvalue = weightvalue+100;
+              
+                          tmp=toascii(weightvalue,3);
+                          scalebuf[1]=tmp;
+                          tmp=toascii(weightvalue,2);
+                          scalebuf[2]=tmp;            
+                          tmp=toascii(weightvalue,1); 
+                          scalebuf[3]=tmp;            
+                          tmp=toascii(weightvalue,0);
+                          scalebuf[4]=tmp;
+                          
+                          datevalue = datevalue+100;
+                          tmp=toascii(datevalue,4);
+                          scalebuf[5]=tmp;
+                          tmp=toascii(datevalue,3);
+                          scalebuf[6]=tmp;            
+                          tmp=toascii(datevalue,2);
+                          scalebuf[7]=tmp;            
+                          tmp=toascii(datevalue,1);
+                          scalebuf[8]=tmp;            
+                          tmp=toascii(datevalue,0);
+                          scalebuf[9]=tmp;  
+                                    
+                          scale_index++;
+                        }
+                        break;
+                                    
+                    case 0x02:
+                        for(i=0;i<20;i++)
+                            att_HDL_TAOBAO_DATI[i] = send_scale_data[i+20+20];
+                        result = BLE_SendData(att_HDL_TAOBAO_DATI,ATT_HDL_TAOBAO_DATI_INIT,20);
+                        if(result == SUCCESS)
+                        {
+                          scale_index++;
+                          KeyWakeup = 0;
+                        }
+                        break;
+              
+                    default:
+                        break;
+                }                                 
+              
+              }
+              #endif
+ 295          /*********************************************************************
+ 296          **  toascii
+ 297          *********************************************************************/
+ 298          uint8_t toascii(uint32_t in, uint8_t unit)
+ 299          {
+ 300   1        uint8_t tmp;
+ 301   1      
+C51 COMPILER V9.00   MCUFUNCTION                                                           07/19/2019 22:46:43 PAGE 6   
+
+ 302   1        tmp = ascii[(in>>(unit*4))&0x0F];
+ 303   1        return tmp;
+ 304   1      }
+ 305          
+ 306          /////////////////TWOR//////////////////////////////////////////////
+ 307          /*********************************************************************
+ 308          **  Enable05Timer
+ 309          *********************************************************************/
+ 310          void Twor05Timer(uint8_t TimerEnable)
+ 311          {
+ 312   1        if(TimerEnable == ENABLE)
+ 313   1        {
+ 314   2          TworTimer=1;
+ 315   2          A8107_RCSelect(internalRC);
+ 316   2          //XBYTE[GIO2_REG]=0x10;
+ 317   2          XBYTE[RCOSC1_REG]=0x1F;
+ 318   2          XBYTE[CKO_REG]=0x52;
+ 319   2          XBYTE[VCOC_REG]=0xE0;
+ 320   2          //EIE = EIE | 0x08;
+ 321   2        }
+ 322   1        else
+ 323   1        {
+ 324   2          TworTimer=0;
+ 325   2          A8107_RCSelect(internalRC);
+ 326   2          XBYTE[CKO_REG]=0x52;
+ 327   2        }
+ 328   1      }
+ 329          //////////////////TWOR///////////////////////////////////////////////
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    271    ----
+   CONSTANT SIZE    =     60    ----
+   XDATA SIZE       =     42      14
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

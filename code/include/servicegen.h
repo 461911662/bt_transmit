@@ -20,7 +20,7 @@
 //#define _PROFILE_USER_DEFINE_02_
 
 //#define _PROFILE_TAOBAO_
-#define _PROFILE_WECHAT_
+//#define _PROFILE_WECHAT_
 //#define _PROFILE_WECHAT_SIMPLE_MODE_
 
 //#define _PROFILE_GLS_

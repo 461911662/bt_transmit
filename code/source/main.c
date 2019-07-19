@@ -30,8 +30,10 @@ uint8_t xdata xpresskeyCapture;
 uint8_t xdata mousedata;
 
 void _3nop_delay(void);
+void handleCMD(uint8_t *pcBuf);
 void key_handleEvent(void);
-void RespondMaster(uint8_t *ptrChar, uint8_t DataLen);
+uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
+void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
 
 #define STRICKCNTLEVEL_UP 600 
 
@@ -125,9 +127,9 @@ void main(void)
 
     /* 3.开中断 */
     InterruptEnable();
-    EIE |= 0x10; /* 使能外部按键中断 */
-    EIP |= 0x10; /* 外部中断优先级高 */
-    EIF |= 0x10; /* 清除中断标志位 */
+    EIE |= EKEYINT; /* 使能外部按键中断 */
+    EIP |= EKEYPRI; /* 外部中断优先级高 */
+    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
 
     /* 启动0.5s定时器 */
 	//IOSEL|=0x08;
@@ -201,7 +203,7 @@ void main(void)
                 {
                     ptrChar = BLE_GetWriteEnvet();
                     DataLen = BLE_GetWriteEnvet_Length();
-                    RespondMaster(ptrChar, DataLen);
+                    respondMaster(ptrChar, DataLen);
                 }
 
 #ifdef KYE_DEBUG
@@ -214,7 +216,8 @@ void main(void)
                 {
                     P0OE &= ~0x02;
                 }
-#endif                
+#endif
+                key_handleEvent();
             }
 
             if(TworTimerFlag)
@@ -248,13 +251,14 @@ void main(void)
         }
         else
         {
+            isNeedSleeping = FALSE;
             _nop_();
         }
 
     }
 }
 
-void RespondMaster(uint8_t *ptrChar, uint8_t DataLen)
+void respondMaster(uint8_t *ptrChar, uint8_t DataLen)
 {
     uint8_t xdata i;
     uint8_t xdata result;
@@ -263,30 +267,12 @@ void RespondMaster(uint8_t *ptrChar, uint8_t DataLen)
 #ifdef _PROFILE_USER_DEFINE_01_
     if(ptrChar == &att_HDL_USER_DEFINE_01_DATAW01)
     {
-        if((att_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-        {
-            for(i=0;i<20;i++)
-            {                  
-                att_HDL_USER_DEFINE_01_DATAN01[i] = att_HDL_USER_DEFINE_01_DATAW01[i];
-            }
-            result = BLE_SendData(att_HDL_USER_DEFINE_01_DATAN01, ATT_HDL_USER_DEFINE_01_DATAN01_INIT, 5);
-
-            if(result == SUCCESS)
-            {
-                    _nop_();
-                    //P0_0 = ~P0_0;
-            }
-            else
-            {
-                    _nop_();
-                    //P0_1 = ~P0_1;
-            }
-        }
-
+        handleCMD(att_HDL_USER_DEFINE_01_DATAW01);
     }
     else if(ptrChar == &att_HDL_USER_DEFINE_01_DATAW02)
     {
-            if((att_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_USER_DEFINE_01_DATAN02_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                     for(i=0;i<20;i++)
                             att_HDL_USER_DEFINE_01_DATAN02[i] = att_HDL_USER_DEFINE_01_DATAW02[i];
@@ -310,6 +296,48 @@ void RespondMaster(uint8_t *ptrChar, uint8_t DataLen)
     else
         ;
 
+}
+
+void handleCMD(uint8_t *pcBuf)
+{
+    uint8_t result = 0;
+    BLE_CMD_Req_S *pstBLE_CMD_Req = NULL;
+    if(NULL == pcBuf)
+    {
+        return ;
+    }
+
+    pstBLE_CMD_Req = (BLE_CMD_Req_S *)pcBuf;
+    result = checkSum(pcBuf, 20);
+    if(0 != result)
+    {
+        return;
+    }
+
+    switch(pstBLE_CMD_Req->cmd)
+    {
+        case BLE0_CODE_FIRST:
+            entrySleep(); /* 进入休眠，等待按键唤醒 */
+            break;
+        default:
+            break;
+    }
+}
+
+uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght)
+{
+    uint8_t i, ucCheckSum=0;
+    if(pcBuf == NULL || lenght < 0)
+    {
+        return 255;
+    }
+
+    for(i=0; i<lenght; i++)
+    {
+        ucCheckSum += pcBuf[i]; 
+    }
+
+    return ucCheckSum;
 }
 
 void _3nop_delay(void)
@@ -336,7 +364,8 @@ void key_handleEvent(void)
             return ;
         }
 
-        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 照相 */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x58; /* enter */
@@ -349,7 +378,8 @@ void key_handleEvent(void)
 
         do
         {
-            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
@@ -363,7 +393,7 @@ void key_handleEvent(void)
         do
         {
             _nop_();
-        }while(P0_0);
+        }while(~P0_0);
     }
 
     //if(P0_5)
@@ -382,7 +412,9 @@ void key_handleEvent(void)
         {
             return;
         }
-        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        
+        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 焦距+ */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x80; /* Volume+ */
@@ -395,7 +427,8 @@ void key_handleEvent(void)
 
         do
         {
-            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
@@ -409,19 +442,19 @@ void key_handleEvent(void)
         do
         {
             _nop_();
-        }while(P0_5);
+        }while(~P0_5);
         
         isPressedKey = 0;
     }
 
-    if(P0_3)
-    //if(~P0_3)
+    //if(P0_3)
+    if(~P0_3)
     {
         for(i=0; i<1000; i++)
             _3nop_delay(); /* 消抖 */
 
-        if(~P0_3)
-        //if(P0_3)
+        //if(~P0_3)
+        if(P0_3)
         {
             return ;
         }
@@ -431,7 +464,8 @@ void key_handleEvent(void)
             return;
         }
 
-        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 焦距- */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x81; /* Volume- */
@@ -444,7 +478,8 @@ void key_handleEvent(void)
         
         do
         {
-            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
@@ -458,7 +493,7 @@ void key_handleEvent(void)
         do
         {
             _nop_();
-        }while(P0_3);
+        }while(~P0_3);
 
         isPressedKey = 1;
     }
@@ -473,7 +508,8 @@ void key_handleEvent(void)
             return ;
         }
 
-        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 摄像 */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x21; /* key4 */
@@ -486,7 +522,8 @@ void key_handleEvent(void)
 
         do
         {
-            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
@@ -500,7 +537,7 @@ void key_handleEvent(void)
         do
         {
             _nop_();
-        }while(P0_2);
+        }while(~P0_2);
     }
    
     if(~P0_1)
@@ -513,7 +550,8 @@ void key_handleEvent(void)
             return ;
         }
 
-        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 前后镜头切换 */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x20; /* key3 */
@@ -526,7 +564,8 @@ void key_handleEvent(void)
 
         do
         {
-            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
@@ -540,7 +579,7 @@ void key_handleEvent(void)
         do
         {
             _nop_();
-        }while(P0_1);
+        }while(~P0_1);
     }
 
 }
