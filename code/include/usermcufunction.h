@@ -27,7 +27,7 @@ typedef enum{
     BLE0_CODE_END,
 }BLE_CODE0_E;
 
-#define KYE_DEBUG
+#undef KYE_DEBUG
 
 extern void reset(void);
 extern void entrySleep(void);
