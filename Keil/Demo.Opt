@@ -1,0 +1,65 @@
+### uVision2 Project, (C) Keil Software
+### Do not modify !
+
+ cExt (*.c)
+ aExt (*.s*; *.src; *.a*)
+ oExt (*.obj)
+ lExt (*.lib)
+ tExt (*.txt; *.h; *.inc)
+ pExt (*.plm)
+ CppX (*.cpp)
+ DaveTm { 0,0,0,0,0,0,0,0 }
+
+Target (Target 1), 0x0000 // Tools: 'MCS-51'
+GRPOPT 1,(ASM),0,0,0
+GRPOPT 2,(BLE_Library),0,0,0
+GRPOPT 3,(OTA),0,0,0
+GRPOPT 4,(IAP),0,0,0
+GRPOPT 5,(include),0,0,0
+GRPOPT 6,(BLE_Service),0,0,0
+GRPOPT 7,(Security_Setting),0,0,0
+GRPOPT 8,(source),0,0,0
+GRPOPT 9,(UserData),0,0,0
+
+OPTFFF 1,1,2,0,0,0,0,0,<..\ASM\startup.a51><startup.a51> 
+OPTFFF 1,2,2,0,0,0,0,0,<..\OTA\FlashChk.a51><FlashChk.a51> 
+OPTFFF 1,3,2,0,0,0,0,0,<..\OTA\INTERRUPT_OFFSET.asm><INTERRUPT_OFFSET.asm> 
+OPTFFF 1,4,2,0,0,0,0,0,<..\OTA\OTA_IAP.asm><OTA_IAP.asm> 
+OPTFFF 2,5,4,0,0,0,0,0,<..\Library\A8107_BLE_LIB.LIB><A8107_BLE_LIB.LIB> 
+OPTFFF 3,6,4,0,0,0,0,0,<..\OTA\OTA.LIB><OTA.LIB> 
+OPTFFF 4,7,4,0,0,0,0,0,<..\IAP\IAP.LIB><IAP.LIB> 
+OPTFFF 5,8,5,0,0,0,0,0,<..\include\A8107.h><A8107.h> 
+OPTFFF 5,9,5,0,0,0,0,0,<..\include\define.h><define.h> 
+OPTFFF 5,10,5,0,0,0,0,0,<..\include\IAP.h><IAP.h> 
+OPTFFF 5,11,5,0,0,0,0,0,<..\include\LibFunction.h><LibFunction.h> 
+OPTFFF 5,12,5,0,0,0,0,0,<..\include\mcufunction.h><mcufunction.h> 
+OPTFFF 5,13,5,0,0,0,0,0,<..\include\OTA.h><OTA.h> 
+OPTFFF 5,14,5,0,0,0,0,0,<..\include\security.h><security.h> 
+OPTFFF 6,15,1,0,0,0,0,0,<..\BLE Service\servicegen.c><servicegen.c> 
+OPTFFF 7,16,1,0,0,0,0,0,<..\Security Setting\security.c><security.c> 
+OPTFFF 8,17,1,0,0,0,0,0,<..\source\application_check.c><application_check.c> 
+OPTFFF 8,18,1,0,0,0,0,0,<..\source\interrupt.c><interrupt.c> 
+OPTFFF 8,19,1,67108864,0,0,0,0,<..\source\main_demo.c><main_demo.c> 
+OPTFFF 8,20,1,0,0,0,0,0,<..\source\mcufunction.c><mcufunction.c> 
+OPTFFF 9,21,2,0,0,0,0,0,<..\UserData\IEEE.a51><IEEE.a51> 
+OPTFFF 9,22,2,0,0,0,0,0,<..\UserData\OTA_Data.a51><OTA_Data.a51> 
+
+
+TARGOPT 1, (Target 1)
+ CLK51=16000000
+  OPTTT 1,1,1,0
+  OPTHX 0,65535,0,0,0
+  OPTLX 120,65,8,<.\>
+  OPTOX 16
+  OPTLT 1,1,1,0,1,1,0,1,0,0,0,0
+  OPTXL 1,1,1,1,1,1,1,0,0
+  OPTFL 1,0,1
+  OPTAX 0
+  OPTDL (S8051.DLL)()(DCORE51.DLL)(-p251int -dAMC51)(S8051.DLL)()(DCORE51.DLL)(-p251int -dAMC51 -h)
+  OPTDBG 48126,9,()()()()()()()()()() (BIN\AMICCOM.DLL)()()()
+  OPTKEY 0,(AMICCOM)(-O17938 -T2 -R16.000 -IR0 -IO0, -DR0, -DO0, -W0 -L1, -U5, -C1 -EE0 -ES0 -ED0 -BE0 -BX0 -BS0 -BK0 -BR0  -MFsst128kx8.ini  -FLE0 -FL1A0 -FL1S0 -FL2A0 -FL2S0 -FL3A0 -FL3S0 -VD1 -VV2 -H0 -N1 -S1 -FAS0 -FAJ0 -A0 -G0 -Q1000000 -J256)
+  OPTDF 0x2
+  OPTLE <>
+  OPTLC <>
+EndOpt
+
