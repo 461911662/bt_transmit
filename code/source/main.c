@@ -33,7 +33,7 @@ void key_handleEvent(void);
 uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
 void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
 
-#define STRICKCNTLEVEL_UP 600 
+#define STRICKCNTLEVEL_UP 3600 
 
 #ifdef _PROFILE_HOGP_
 #ifdef _PROFILE_HOGP_KEYBOARD_
