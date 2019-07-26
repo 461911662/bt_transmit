@@ -2,6 +2,8 @@
 #define _USERMCUFUNCTION_H_
 #include "define.h"
 
+#define IAPLAT_BT_CAMERA
+
 #define EKEYINT         0x10 /* 按键中断使能 */
 #define EKEYPRI         0x10 /* 按键中断优先级1 */
 #define CLEAR_KEYINTFLAG      0x10 /* 外部中断标志位 */
@@ -24,10 +26,11 @@ typedef struct BLE_CMDREQUEST
 typedef enum{
     BLE0_CODE_FIRST=0,
     BLE0_CODE_SLEEP,
+    BLE0_CODE_LONG_PRESSED,
     BLE0_CODE_END,
 }BLE_CODE0_E;
 
-#define KYE_DEBUG
+#undef KYE_DEBUG
 
 extern void reset(void);
 extern void entrySleep(void);

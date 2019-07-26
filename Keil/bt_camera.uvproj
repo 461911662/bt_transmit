@@ -351,7 +351,7 @@
             <IDataBaseAddress></IDataBaseAddress>
             <Precede></Precede>
             <Stack></Stack>
-            <CodeSegmentName>?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt,?PR?*main_demo</CodeSegmentName>
+            <CodeSegmentName>?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt,?PR?*main</CodeSegmentName>
             <XDataSegmentName></XDataSegmentName>
             <BitSegmentName></BitSegmentName>
             <DataSegmentName></DataSegmentName>
@@ -494,11 +494,6 @@
               <FilePath>..\code\source\interrupt.c</FilePath>
             </File>
             <File>
-              <FileName>main_demo.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\source\main_demo.c</FilePath>
-            </File>
-            <File>
               <FileName>mcufunction.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\source\mcufunction.c</FilePath>
@@ -507,6 +502,11 @@
               <FileName>usermcufunction.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\source\usermcufunction.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\source\main.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -13,9 +13,9 @@
 
 /*------- Multi-Function select ----------*/
 /*----------------------------------------*/
-//#define _PROFILE_HOGP_
+#define _PROFILE_HOGP_
 //#define _PROFILE_HOGP_MOUSE_
-//#define _PROFILE_HOGP_KEYBOARD_
+#define _PROFILE_HOGP_KEYBOARD_
 //#define _PROFILE_HOGP_COMSUMER_
 
 #define _PROFILE_USER_DEFINE_01_

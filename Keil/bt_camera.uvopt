@@ -449,8 +449,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\code\source\main_demo.c</PathWithFileName>
-      <FilenameWithoutPath>main_demo.c</FilenameWithoutPath>
+      <PathWithFileName>..\code\source\mcufunction.c</PathWithFileName>
+      <FilenameWithoutPath>mcufunction.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -461,8 +461,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\code\source\mcufunction.c</PathWithFileName>
-      <FilenameWithoutPath>mcufunction.c</FilenameWithoutPath>
+      <PathWithFileName>..\code\source\usermcufunction.c</PathWithFileName>
+      <FilenameWithoutPath>usermcufunction.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -473,8 +473,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\code\source\usermcufunction.c</PathWithFileName>
-      <FilenameWithoutPath>usermcufunction.c</FilenameWithoutPath>
+      <PathWithFileName>..\code\source\main.c</PathWithFileName>
+      <FilenameWithoutPath>main.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
