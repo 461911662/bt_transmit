@@ -20,7 +20,7 @@
 **  I/O define  :                                                           **
 **     Bit|   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   | **
 **  Port 0|  P07  |  P06  |  P05  |  P04  |  P03  |  P02  |  P01  |  P00  | **
-**   I/O  | undef | undef | KEY(I)| undef | KEY(I)| KEY(I)| KEY(I)| KEY(I)| **
+**   I/O  | undef | IO(O) | KEY(I)| undef | KEY(I)| KEY(I)| KEY(I)| KEY(I)| **
 **  Port 1|  P17  |  P16  |  P15  |  P14  |  P13  |  P12  |  P11  |  P10  | **
 **   I/O  | undef | undef | undef | undef | undef | undef | undef | undef | **
 **  Port 3|  P37  |  P36  |  P35  |  P34  |  P33  |  P32  |  P31  |  P30  | **
@@ -47,7 +47,7 @@ void InitMCU(void)
     */
 #ifdef _USERMCUFUNCTION_H_
     P0 = PWUP_P0;
-    P0OE = PWUP_P0OE;
+    P0OE = PWUP_P0OE; //P06:输出
     P0PUN = PWUP_P0PUN; //0x2F;输入浮空
     P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
 

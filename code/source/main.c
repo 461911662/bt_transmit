@@ -22,7 +22,9 @@ uint8_t xdata xpresskeyVoldown;
 uint8_t xdata xpresskeyVideo;
 uint8_t xdata xpresskeyInvert;
 uint8_t xdata xpresskeyCapture;
-uint8_t xdata isLongPressed = 1;
+uint8_t xdata isLongPressed = 1; /* 确定蓝牙键盘是否采用长按机制, 0:不采用,1:采用 */
+uint16_t xdata usStrickCnt = 0; /* 用于MCU计时 */
+uint16_t xdata usStrickCntSave = 0; /* 保存上次MCU计数值 */
 
 
 extern bit IntoSleepFlag;
@@ -32,6 +34,8 @@ void handleCMD(uint8_t *pcBuf);
 void key_handleEvent(void);
 uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
 void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
+void ledblink(uint8_t isblink, uint8_t uiFlag);
+
 
 #define STRICKCNTLEVEL_UP 3600 
 
@@ -63,7 +67,6 @@ void main(void)
     uint8_t xdata   *ptrChar = NULL;
     uint8_t xdata   UpdateOTASpeed;
     uint8_t xdata   Temp;
-    uint16_t xdata usStrickCnt = 0;
     bit isNeedSleeping = FALSE;
 
     while(~P0_4);
@@ -89,9 +92,6 @@ void main(void)
     BLE_SetTxPower(0); //level 0 ~ 7 : 0 => -17dBm; 1 => -15dBm; 2 => -10dBm; 3 => -5dBm; 4 => 0dBm; 5 => FCC/CE Setting; 6 => 4dBm; 7 => 7dBm
     /* 3.开中断 */
     InterruptEnable();
-    //EIE |= EKEYINT; /* ʹ���ⲿ�����ж� */
-    //EIP |= EKEYPRI; /* �ⲿ�ж����ȼ��� */
-    //EIF |= CLEAR_KEYINTFLAG; /* ����жϱ�־λ */
 
     Timer500ms_flag = 0; /* 清除Timer500ms_flag，每隔0.5s会被置位 */
     RF_Timer500ms(ENABLE);
@@ -152,6 +152,7 @@ void main(void)
             }
             else if(ble_state == CONNECT_ESTABLISH_STATE)
             {
+                ledblink(FALSE, LED_FLAG_NOBLINK);
                 fast_adv = 1;
 
                 if (UpdateOTASpeed)
@@ -223,6 +224,7 @@ void main(void)
             isNeedSleeping = FALSE;
             _nop_();
         }
+        ledblink(TRUE, LED_FLAG_BLINK_1S);
     }
 }
 
@@ -634,5 +636,36 @@ void key_handleEvent(void)
             }while(~P0_5);
         }
     }
+}
+
+void ledblink(uint8_t isblink, uint8_t uiFlag)
+{
+    if(uiFlag >= LED_FLAG_END || (FALSE != isblink && TRUE != isblink))
+    {
+        return;
+    }
+
+    if(FALSE == isblink)
+    {
+        P0_6 = 1; //long light
+        return;
+    }
+
+    if(usStrickCntSave == usStrickCnt)
+    {
+        return;
+    }
+
+    if(LED_FLAG_BLINK_1S == uiFlag)
+    {
+        // 1s blink blink...
+        if(0 == usStrickCnt%2)
+        {
+            usStrickCntSave = usStrickCnt;
+            P0_6 = ~P0_6;
+        }
+    }
+
+    return;
 }
 
