@@ -224,7 +224,10 @@ void main(void)
             isNeedSleeping = FALSE;
             _nop_();
         }
-        ledblink(TRUE, LED_FLAG_BLINK_1S);
+        if(CONNECT_ESTABLISH_STATE != ble_state)
+        {
+            ledblink(TRUE, LED_FLAG_BLINK_1S);
+        }
     }
 }
 
@@ -647,7 +650,7 @@ void ledblink(uint8_t isblink, uint8_t uiFlag)
 
     if(FALSE == isblink)
     {
-        P0_6 = 1; //long light
+        P0_6 = 1; //no light
         return;
     }
 
