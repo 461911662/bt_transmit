@@ -3,6 +3,7 @@
 #include "define.h"
 
 #define IAPLAT_BT_CAMERA
+#define BT_CUSTOMER_NAME
 
 #define EKEYINT         0x10 /* 按键中断使能 */
 #define EKEYPRI         0x10 /* 按键中断优先级1 */
