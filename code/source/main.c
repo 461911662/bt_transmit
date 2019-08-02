@@ -643,6 +643,7 @@ void key_handleEvent(void)
 
 void ledblink(uint8_t isblink, uint8_t uiFlag)
 {
+    uint16_t i,j;
     if(uiFlag >= LED_FLAG_END || (FALSE != isblink && TRUE != isblink))
     {
         return;
@@ -662,10 +663,24 @@ void ledblink(uint8_t isblink, uint8_t uiFlag)
     if(LED_FLAG_BLINK_1S == uiFlag)
     {
         // 1s blink blink...
-        if(0 == usStrickCnt%2)
+        if(0 == usStrickCnt)
         {
-            usStrickCntSave = usStrickCnt;
+            for(i=0; i<1000; i++)
+            {
+                for(j=0; j<333; j++)
+                {
+                    _3nop_delay();
+                }
+            }
             P0_6 = ~P0_6;
+        }
+        else
+        {
+            if(0 == usStrickCnt%2)
+            {
+                usStrickCntSave = usStrickCnt;
+                P0_6 = ~P0_6;
+            }
         }
     }
 
