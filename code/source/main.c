@@ -35,9 +35,11 @@ void key_handleEvent(void);
 uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
 void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
 void ledblink(uint8_t isblink, uint8_t uiFlag);
+void sendBattery(uint16_t value);
+uint16_t getBattery();
 
 
-#define STRICKCNTLEVEL_UP 3600 
+#define STRICKCNTLEVEL_UP 36000 /* 5 hours */ 
 
 #ifdef _PROFILE_HOGP_
 #ifdef _PROFILE_HOGP_KEYBOARD_
@@ -271,9 +273,48 @@ void respondMaster(uint8_t *ptrChar, uint8_t DataLen)
 
 }
 
+uint16_t getBattery()
+{
+    uint16_t usValue;
+    P3OE &= 0xFD;  /* P3.1 input */
+    P3PUN |= ~0xFD; /* no wakeup */
+    //ADCCH = 0x0F; /* select P3.1 for ADC, and Enable ADC analog input */
+
+    /* setting and running */
+    XBYTE[EXT1_REG] = 0x58;  /* disable REGR */
+    XBYTE[ADCAVG1_REG] = 0x02; /* enable the SAR ADC */
+    XBYTE[ADCCTL_REG] = 0x01; /* single mode and ADC measurement enable */
+
+    usValue = 0;
+    while(XBYTE[ADCCTL_REG] & 0x01);
+    usValue = XBYTE[ADCAVG1_REG] & 0xF0;
+    usValue <<= 4;
+    usValue |= XBYTE[ADCAVG2_REG];
+    XBYTE[ADCCTL_REG] = 0x00;
+    XBYTE[ADCAVG1_REG] = 0x00;
+    //ADCCH = &0xFE; /* disable ADC analog input */
+
+    return usValue;
+}
+
+void sendBattery(uint16_t value)
+{
+    uint8_t result;
+
+    if((att_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & 
+       GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+    {
+        att_HDL_USER_DEFINE_01_DATAN01[0] = value&0xFF00 >> 8;
+        att_HDL_USER_DEFINE_01_DATAN01[1] = value&0xFF;
+    }
+
+    result = BLE_SendData(att_HDL_USER_DEFINE_01_DATAN01, ATT_HDL_USER_DEFINE_01_DATAN01_INIT, 2);
+}
+
+
 void handleCMD(uint8_t *pcBuf)
 {
-    uint8_t result = 0;
+    uint32_t result = 0;
     BLE_CMD_Req_S *pstBLE_CMD_Req = NULL;
     if(NULL == pcBuf)
     {
@@ -281,7 +322,7 @@ void handleCMD(uint8_t *pcBuf)
     }
 
     pstBLE_CMD_Req = (BLE_CMD_Req_S *)pcBuf;
-    result = checkSum(pcBuf, 20);
+    result = (uint8_t)checkSum(pcBuf, 20);
     if(0 != result)
     {
         return;
@@ -302,6 +343,9 @@ void handleCMD(uint8_t *pcBuf)
                 isLongPressed = 0;
             }
             break;
+        case BLE0_CODE_GET_BATTERY:
+            result = getBattery();
+            sendBattery((uint16_t)result);
         default:
             break;
     }
