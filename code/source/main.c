@@ -25,6 +25,7 @@ uint8_t xdata xpresskeyCapture;
 uint8_t xdata isLongPressed = 1; /* 确定蓝牙键盘是否采用长按机制, 0:不采用,1:采用 */
 uint16_t xdata usStrickCnt = 0; /* 用于MCU计时 */
 uint16_t xdata usStrickCntSave = 0; /* 保存上次MCU计数值 */
+uint8_t xdata gucCurMasterOSType = 0; /* 当前模块Master系统类型 */
 
 
 extern bit IntoSleepFlag;
@@ -34,12 +35,13 @@ void _3nop_delay(void);
 void handleCMD(uint8_t *pcBuf);
 void key_handleEventForandroid(void);
 void key_handleEventForios(void);
-uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
+sint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
 void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
 void ledblink(uint8_t isblink, uint8_t uiFlag);
 void sendBattery(uint16_t value);
 uint16_t getBattery();
-
+void sendOsType(BLE_CMD_Req_S *pstBLE_CMD_Req);
+uint8_t getOsType(BLE_CMD_Req_S *pstBLE_CMD_Req);
 
 #define STRICKCNTLEVEL_UP 36000 /* 5 hours */ 
 
@@ -239,23 +241,39 @@ void main(void)
                 isok = 0;
                 for(i=0;i<6;i++)
                 {
-                    isok *= 255;
-                    isok += *pucDefADDR++; 
+                    //isok *= 255;
+                    //isok += *pucDefADDR++;
+                    if(pucDefADDR[i] == 0x00)
+                    {
+                        isok = 0xCC;
+                        break;
+                    }
                 }
-                if(isok == 0x935600000000)
+                //if(isok == 0xE7F1E468767C)
+                if(isok == 0x02)
                 {
                     isok = 0xCC;
                 }
 
-                ///if(6 == i)
-                ///{
-                ///    isok = 0x00;
-                ///}
+                //if(6 == i)
+                //{
+                //    isok = 0x00;
+                //}
                 //if(NULL == pucDefADDR)
                 //{
                 //    key_handleEventForios();
                 //}
-                if(0xCC != isok)
+                //if(0xCC != isok)
+                //{
+                //    key_handleEventForios();
+                //}
+                //else
+                //{
+                //    key_handleEventForandroid();
+                //}
+                
+                //if(0 == strncmp(gaucBLE_ADDRESS, pucDefADDR, BLE_MACADDRESS_SIZE))
+                if(BLE_MASTER_OSTYPE_IOS == gucCurMasterOSType)
                 {
                     key_handleEventForios();
                 }
@@ -263,15 +281,6 @@ void main(void)
                 {
                     key_handleEventForandroid();
                 }
-                
-                //if(0 == strncmp(gaucBLE_ADDRESS, pucDefADDR, BLE_MACADDRESS_SIZE))
-                //{
-                //    key_handleEventForandroid();
-                //}
-                //else
-                //{
-                //    key_handleEventForios();
-                //}
                 if(ble_state == CONNECT_ESTABLISH_STATE)
                 {
                     BLE_AutoPwrDown_Enable();
@@ -385,10 +394,61 @@ void sendBattery(uint16_t value)
     result = BLE_SendData(att_HDL_USER_DEFINE_01_DATAN01, ATT_HDL_USER_DEFINE_01_DATAN01_INIT, 2);
 }
 
+uint8_t getOsType(BLE_CMD_Req_S *pstBLE_CMD_Req)
+{
+    if(NULL == pstBLE_CMD_Req)
+    {
+        return ERR_FAILED;
+    }
+    if(BLE_MASTER_OSTYPE_IOS == pstBLE_CMD_Req->payload[0])
+    {
+        gucCurMasterOSType = BLE_MASTER_OSTYPE_IOS;
+    }
+    else if(BLE_MASTER_OSTYPE_ANDROID == pstBLE_CMD_Req->payload[0])
+    {
+        gucCurMasterOSType = BLE_MASTER_OSTYPE_ANDROID;
+    }
+    else if(BLE_MASTER_OSTYYPE_WINDOWSPHONE == pstBLE_CMD_Req->payload[0])
+    {
+        gucCurMasterOSType = BLE_MASTER_OSTYYPE_WINDOWSPHONE;
+    }
+    else
+    {
+        gucCurMasterOSType = BLE_MASTER_OSTYPE_FIRST;
+        return ERR_FAILED;
+    }
+    pstBLE_CMD_Req->payload[1] = 0xCC;
+
+    return SUCCESS;
+}
+
+void sendOsType(BLE_CMD_Req_S *pstBLE_CMD_Req)
+{
+    uint8_t i;
+    uint8_t *pucTmp = NULL;
+
+    if(NULL == pstBLE_CMD_Req)
+    {
+        return;
+    }   
+    pucTmp = (uint8_t*)pstBLE_CMD_Req;
+    pstBLE_CMD_Req->CheckSum = -(checkSum(pucTmp, 20))&0xFF;
+
+    if((att_HDL_USER_DEFINE_01_DATAN01_CLIENT_CHARACTERISTIC_CONFIGURATION[0] & 
+       GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+    {
+        for(i=0; i<20; i++)
+        {
+            att_HDL_USER_DEFINE_01_DATAN01[i] = pucTmp[i];
+        }
+    }
+
+    (void)BLE_SendData(att_HDL_USER_DEFINE_01_DATAN01, ATT_HDL_USER_DEFINE_01_DATAN01_INIT, 20);
+}
 
 void handleCMD(uint8_t *pcBuf)
 {
-    uint32_t result = 0;
+    sint32_t result = 0;
     BLE_CMD_Req_S *pstBLE_CMD_Req = NULL;
     if(NULL == pcBuf)
     {
@@ -396,7 +456,7 @@ void handleCMD(uint8_t *pcBuf)
     }
 
     pstBLE_CMD_Req = (BLE_CMD_Req_S *)pcBuf;
-    result = (uint8_t)checkSum(pcBuf, 20);
+    result = (sint8_t)checkSum(pcBuf, 20);
     if(0 != result)
     {
         return;
@@ -420,14 +480,23 @@ void handleCMD(uint8_t *pcBuf)
         case BLE0_CODE_GET_BATTERY:
             result = getBattery();
             sendBattery((uint16_t)result);
+            break;
+        case BLE0_CODE_OSTYPE:
+            result = getOsType(pstBLE_CMD_Req);
+            if(SUCCESS == result)
+            {
+                sendOsType(pstBLE_CMD_Req);
+            }
+            break;
         default:
             break;
     }
 }
 
-uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght)
+sint8_t checkSum(uint8_t *pcBuf, uint8_t lenght)
 {
-    uint8_t i, ucCheckSum=0;
+    uint8_t i;
+    sint8_t cCheckSum=0;
     if(pcBuf == NULL || lenght < 0)
     {
         return 255;
@@ -435,10 +504,10 @@ uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght)
 
     for(i=0; i<lenght; i++)
     {
-        ucCheckSum += pcBuf[i]; 
+        cCheckSum += pcBuf[i]; 
     }
 
-    return ucCheckSum;
+    return cCheckSum;
 }
 
 void _3nop_delay(void)

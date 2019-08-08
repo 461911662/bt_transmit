@@ -144,6 +144,7 @@ typedef struct
 #define ERR_LL_RESPONSE_TIMEOUT                                      0x2A
 #define ERR_RF_CALIBRATION_TIMEOUT                                   0x2B
 #define ERR_RF_CALIBRATION_FAIL                                      0x2C
+#define ERR_FAILED                                                   0xFF
 /*********************************************************************
 ** Define DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION
 *********************************************************************/
