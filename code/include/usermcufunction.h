@@ -14,6 +14,8 @@
 #define PWUP_P0PUN      (0xD0) /* 0(bit):pull up 1(bit):HZ */
 #define PWUP_P0WUN      (0xD0) /* port wake up */
 
+#define BLE_MACADDRESS_SIZE  6
+
 typedef struct BLE_CMDREQUEST
 {
     uint8_t head; /* 0xAA:有子命令,0x55:无子命令 */

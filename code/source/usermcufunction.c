@@ -6,6 +6,8 @@
 
 extern void disable_timer1(void);
 
+uint8_t gaucBLE_ADDRESS[BLE_MACADDRESS_SIZE] = {0};
+
 bit IntoSleepFlag = FALSE;
 
 void reset(void)

@@ -28,10 +28,12 @@ uint16_t xdata usStrickCntSave = 0; /* 保存上次MCU计数值 */
 
 
 extern bit IntoSleepFlag;
+extern uint8_t gaucBLE_ADDRESS[BLE_MACADDRESS_SIZE];
 
 void _3nop_delay(void);
 void handleCMD(uint8_t *pcBuf);
-void key_handleEvent(void);
+void key_handleEventForandroid(void);
+void key_handleEventForios(void);
 uint8_t checkSum(uint8_t *pcBuf, uint8_t lenght);
 void respondMaster(uint8_t *ptrChar, uint8_t DataLen);
 void ledblink(uint8_t isblink, uint8_t uiFlag);
@@ -53,6 +55,38 @@ uint16_t getBattery();
 #endif
 #endif
 
+#ifdef _PROFILE_HOGP_
+#ifdef _PROFILE_HOGP_COMSUMER_
+#define HDL_HIDS_REPORT_TAB_CSKEY_L                             0
+#define HDL_HIDS_REPORT_TAB_CSKEY_H                             1
+#endif
+#endif
+
+#ifdef _PROFILE_HOGP_
+#ifdef _PROFILE_HOGP_COMSUMER_
+const uint8_t code HID_RPT_CS_KEY_DEMO[][2] =
+{
+    {0xE9, 0x00,},  //vol+
+    {0xEA, 0x00,},  //vol-
+    {0xE2, 0x00,},  //Mute
+    {0xB0, 0x00,},  //Play
+    {0xB1, 0x00,},  //Pause
+    //{0xB2, 0x00,},  //Record
+    {0xB3, 0x00,},  //Fast forward
+    {0xB4, 0x00,},  //Rewind
+    {0xB5, 0x00,},  //Scan next track
+    {0xB6, 0x00,},  //Scan previous track
+    {0xB7, 0x00,},  //Stop
+    {0xB8, 0x00,},  //Eject
+    {0x8A, 0x01,},  //Email reader
+    {0x96, 0x01,},  //Internet browser
+    {0x9E, 0x01,},  //Terminal lock/screensaver
+    {0xC6, 0x01,},  //Research/search browser
+    {0x2D, 0x02,},  //Zoom in
+};
+#endif
+#endif
+
 /*******************************************************************
  *
  * main - main function
@@ -69,6 +103,8 @@ void main(void)
     uint8_t xdata   *ptrChar = NULL;
     uint8_t xdata   UpdateOTASpeed;
     uint8_t xdata   Temp;
+    uint8_t xdata   *pucDefADDR = NULL;
+    int xdata i, isok;
     bit isNeedSleeping = FALSE;
 
     while(~P0_4);
@@ -197,7 +233,45 @@ void main(void)
                     P0OE &= ~0x02;
                 }
 #endif
-                key_handleEvent();
+
+                IAP_ReadData(0x2FA, gaucBLE_ADDRESS, BLE_MACADDRESS_SIZE);
+                pucDefADDR = BLE_GetConnectServerAddress();
+                isok = 0;
+                for(i=0;i<6;i++)
+                {
+                    isok *= 255;
+                    isok += *pucDefADDR++; 
+                }
+                if(isok == 0x935600000000)
+                {
+                    isok = 0xCC;
+                }
+
+                ///if(6 == i)
+                ///{
+                ///    isok = 0x00;
+                ///}
+                //if(NULL == pucDefADDR)
+                //{
+                //    key_handleEventForios();
+                //}
+                if(0xCC != isok)
+                {
+                    key_handleEventForios();
+                }
+                else
+                {
+                    key_handleEventForandroid();
+                }
+                
+                //if(0 == strncmp(gaucBLE_ADDRESS, pucDefADDR, BLE_MACADDRESS_SIZE))
+                //{
+                //    key_handleEventForandroid();
+                //}
+                //else
+                //{
+                //    key_handleEventForios();
+                //}
                 if(ble_state == CONNECT_ESTABLISH_STATE)
                 {
                     BLE_AutoPwrDown_Enable();
@@ -374,7 +448,7 @@ void _3nop_delay(void)
     _nop_();   
 }
 
-void key_handleEvent(void)
+void key_handleEventForandroid(void)
 {
     uint8_t xdata result;
     uint16_t i,j;
@@ -685,6 +759,298 @@ void key_handleEvent(void)
     }
 }
 
+void key_handleEventForios(void)
+{
+    uint8_t xdata result;
+    uint16_t i,j;
+
+    /* 键盘处理 */
+    /* Volume- */
+    if(~P0_0)
+    {
+        /* 消抖 */
+        for(i=0; i<1000; i++)
+        {
+            for(j=0; j<10; j++)
+            {
+                _3nop_delay();
+            }
+        }
+
+        if(P0_0)
+        {
+            return ;
+        }
+
+        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        {
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+            if(result == SUCCESS)
+            {
+                xpresskeyVoldown = 1;
+            }
+        }
+        else
+        {
+            return;
+        }
+        
+        do
+        {
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            {
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                if(result == SUCCESS)
+                {
+                    xpresskeyVoldown = 0;
+                }
+            }
+        }while(xpresskeyVoldown);
+
+        if(isLongPressed)
+        {
+            do
+            {
+                _nop_();
+            }while(~P0_0);
+        }
+    }
+
+    /* Volume+ */
+    if(~P0_1)
+    {
+        /* 消抖 */
+        for(i=0; i<1000; i++)
+        {
+            for(j=0; j<10; j++)
+            {
+                _3nop_delay();
+            }
+        }
+
+        if(P0_1)
+        {
+            return ;
+        }
+
+        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        {
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+            if(result == SUCCESS)
+            {
+                xpresskeyVoldown = 1;
+            }
+        }
+        else
+        {
+            return;
+        }
+        
+        do
+        {
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            {
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                if(result == SUCCESS)
+                {
+                    xpresskeyVoldown = 0;
+                }
+            }
+        }while(xpresskeyVoldown);
+
+        if(isLongPressed)
+        {
+            do
+            {
+                _nop_();
+            }while(~P0_1);
+        }
+    }
+
+    /* key4 */
+    if(~P0_2)
+    {
+        /* 消抖 */
+        for(i=0; i<1000; i++)
+        {
+            for(j=0; j<10; j++)
+            {
+                _3nop_delay();
+            }
+        }
+
+        if(P0_2)
+        {
+            return ;
+        }
+
+        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        {
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+            if(result == SUCCESS)
+            {
+                xpresskeyVoldown = 1;
+            }
+        }
+        else
+        {
+            return;
+        }
+        
+        do
+        {
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            {
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                if(result == SUCCESS)
+                {
+                    xpresskeyVoldown = 0;
+                }
+            }
+        }while(xpresskeyVoldown);
+
+        if(isLongPressed)
+        {
+            do
+            {
+                _nop_();
+            }while(~P0_2);
+        }
+    }
+
+    /* key3 */
+    if(~P0_3)
+    {
+        /* 消抖 */
+        for(i=0; i<1000; i++)
+        {
+            for(j=0; j<10; j++)
+            {
+                _3nop_delay();
+            }
+        }
+
+        if(P0_3)
+        {
+            return ;
+        }
+
+        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        {
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+            if(result == SUCCESS)
+            {
+                xpresskeyVoldown = 1;
+            }
+        }
+        else
+        {
+            return;
+        }
+        
+        do
+        {
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            {
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                if(result == SUCCESS)
+                {
+                    xpresskeyVoldown = 0;
+                }
+            }
+        }while(xpresskeyVoldown);
+
+        if(isLongPressed)
+        {
+            do
+            {
+                _nop_();
+            }while(~P0_3);
+        }
+    }
+
+    /* enter */
+    if(~P0_5)
+    {
+        /* 消抖 */
+        for(i=0; i<1000; i++)
+        {
+            for(j=0; j<10; j++)
+            {
+                _3nop_delay();
+            }
+        }
+
+        if(P0_5)
+        {
+            return ;
+        }
+
+        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+        {
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+            if(result == SUCCESS)
+            {
+                xpresskeyVoldown = 1;
+            }
+        }
+        else
+        {
+            return;
+        }
+        
+        do
+        {
+            if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+            {
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                if(result == SUCCESS)
+                {
+                    xpresskeyVoldown = 0;
+                }
+            }
+        }while(xpresskeyVoldown);
+
+        if(isLongPressed)
+        {
+            do
+            {
+                _nop_();
+            }while(~P0_5);
+        }
+    }
+}
+
 void ledblink(uint8_t isblink, uint8_t uiFlag)
 {
     uint16_t i,j;
@@ -730,4 +1096,3 @@ void ledblink(uint8_t isblink, uint8_t uiFlag)
 
     return;
 }
-
