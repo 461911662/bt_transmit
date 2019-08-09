@@ -6,7 +6,7 @@
 char checkSum(unsigned char *pcBuf, unsigned char lenght)
 {
     unsigned char i;
-    char ucCheckSum=0;
+    char cCheckSum=0;
     if(pcBuf == NULL || lenght < 0)
     {
         return 255;
@@ -14,10 +14,10 @@ char checkSum(unsigned char *pcBuf, unsigned char lenght)
 
     for(i=0; i<lenght; i++)
     {
-        ucCheckSum += pcBuf[i]; 
+        cCheckSum += pcBuf[i]; 
     }
 
-    return ucCheckSum;
+    return cCheckSum;
 }
 
 void usage()
@@ -52,7 +52,7 @@ int main(char argc, char *argv[])
         strcat(acData, " ");
     }
     
-    result = (-checkSum(aucData, iLen+1))&0xFF;
+    result = 256-checkSum(aucData, iLen+1)&0xFF;
     printf(" %sCheckSum Result is %#x\n", acData, result);
     return 0;
 }
