@@ -22,10 +22,11 @@ uint8_t xdata xpresskeyVoldown;
 uint8_t xdata xpresskeyVideo;
 uint8_t xdata xpresskeyInvert;
 uint8_t xdata xpresskeyCapture;
-uint8_t xdata isLongPressed = 1; /* 确定蓝牙键盘是否采用长按机制, 0:不采用,1:采用 */
+uint8_t xdata isLongPressed = 0; /* 确定蓝牙键盘是否采用长按机制, 0:采用,1:不采用 */
+uint32_t xdata isKeyLowPowerFlag = 0; /* Master是否进入省电模式的标志 */
 uint16_t xdata usStrickCnt = 0; /* 用于MCU计时 */
 uint16_t xdata usStrickCntSave = 0; /* 保存上次MCU计数值 */
-uint8_t xdata gucCurMasterOSType = BLE_MASTER_OSTYPE_IOS; /* 当前模块Master系统类型 */
+uint8_t xdata gucCurMasterOSType = 0; /* 当前模块Master系统类型 */
 
 
 extern bit IntoSleepFlag;
@@ -519,17 +520,20 @@ void _3nop_delay(void)
 
 void key_handleEventForandroid(void)
 {
-    uint8_t xdata result;
+    uint8_t xdata result, result1;
     uint16_t i,j;
+    j=j; /* not visibel warning */
+    isKeyLowPowerFlag = 0;
 
     /* 键盘处理 */
     /* Volume- */
     if(~P0_0)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -583,9 +587,10 @@ void key_handleEventForandroid(void)
     if(~P0_1)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -639,9 +644,10 @@ void key_handleEventForandroid(void)
     if(~P0_2)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -703,9 +709,10 @@ void key_handleEventForandroid(void)
     if(~P0_3)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -767,9 +774,10 @@ void key_handleEventForandroid(void)
     if(~P0_5)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -816,31 +824,60 @@ void key_handleEventForandroid(void)
                     xpresskeyCapture = 0;
                 }
             }
-        }while(xpresskeyCapture);        
+        }while(xpresskeyCapture);
 
-        if(isLongPressed)
+        //if(isLongPressed) 取消长按功能
         {
             do
             {
+                isKeyLowPowerFlag++;
+                if(BLE_POWERSAVE_LEVEL >= isKeyLowPowerFlag)
+                {
+                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                    {
+                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
+                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    }
+
+                    do
+                    {
+                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                        {
+                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
+                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                            if(result1 == SUCCESS)
+                            {
+                                break;
+                            }
+                        }
+                    }while(SUCCESS == result);
+                    isKeyLowPowerFlag = 0;
+                }
                 _nop_();
             }while(~P0_5);
         }
     }
+    
 }
 
 void key_handleEventForios(void)
 {
-    uint8_t xdata result;
+    uint8_t xdata result, result1;
     uint16_t i,j;
+    j=j; /* not visibel warning */
+    isKeyLowPowerFlag = 0;
 
     /* 键盘处理 */
     /* Volume- */
     if(~P0_0)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -894,9 +931,10 @@ void key_handleEventForios(void)
     if(~P0_1)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -950,9 +988,10 @@ void key_handleEventForios(void)
     if(~P0_2)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1014,9 +1053,10 @@ void key_handleEventForios(void)
     if(~P0_3)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1074,13 +1114,14 @@ void key_handleEventForios(void)
         }
     }
 
-    /* enter */
+    /* enter + volume+ */
     if(~P0_5)
     {
         /* 消抖 */
-        for(i=0; i<1000; i++)
+        //for(i=0; i<1000; i++)
+        for(i=0; i<250; i++)
         {
-            for(j=0; j<10; j++)
+            //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1122,53 +1163,111 @@ void key_handleEventForios(void)
         }while(xpresskeyCapture);
 
         /* delay 150 ms */
-        for(i=0; i<1000; i++)
-        {
-            for(j=0; j<10; j++)
-            {
-                _3nop_delay();
-            }
-        }
-
-        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
-            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-        {
-            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
-            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
-            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
-            if(result == SUCCESS)
-            {
-                xpresskeyCapture = 1;
-            }
-        }
-        else
-        {
-            return;
-        }
+//        for(i=0; i<1000; i++)
+//        {
+//            for(j=0; j<10; j++)
+//            {
+//                _3nop_delay();
+//            }
+//        }
 
         do
-        {        
-            if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+        {
+            if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
-                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
-                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
                 result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
                 if(result == SUCCESS)
                 {
-                    xpresskeyCapture = 0;
+                    xpresskeyCapture = 1;
                 }
             }
-        }while(xpresskeyCapture);
 
-        if(isLongPressed)
+            while(xpresskeyCapture)
+            {
+                if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                    & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                {
+                    att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+                    att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+                    result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+                    if(result == SUCCESS)
+                    {
+                        xpresskeyCapture = 0;
+                        break;
+                    }
+                }
+            }
+            _3nop_delay();
+        }while(!xpresskeyCapture);
+
+//        if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0]
+//            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+//        {
+//            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = HID_RPT_CS_KEY_DEMO[0][0];
+//            att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = HID_RPT_CS_KEY_DEMO[0][1];
+//            result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+//            if(result == SUCCESS)
+//            {
+//                xpresskeyCapture = 1;
+//            }
+//        }
+//        else
+//        {
+//            return;
+//        }
+
+//        do
+//        {        
+//            if((att_HDL_HIDS_REPORT_CSI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+//                & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+//            {
+//                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_L] = 0x00;
+//                att_HDL_HIDS_REPORT_CSI[HDL_HIDS_REPORT_TAB_CSKEY_H] = 0x00;
+//                result = BLE_SendData(att_HDL_HIDS_REPORT_CSI,ATT_HDL_HIDS_REPORT_CSI_INIT,ATT_HDL_HIDS_REPORT_CSI_INIT[4]);
+//                if(result == SUCCESS)
+//                {
+//                    xpresskeyCapture = 0;
+//                }
+//            }
+//        }while(xpresskeyCapture);
+
+        //if(isLongPressed) 取消长按功能
         {
             do
             {
+                isKeyLowPowerFlag++;
+                if(BLE_POWERSAVE_LEVEL >= isKeyLowPowerFlag)
+                {
+                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                    {
+                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
+                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    }
+
+                    do
+                    {
+                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                        {
+                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
+                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                            if(result1 == SUCCESS)
+                            {
+                                break;
+                            }
+                        }
+                    }while(SUCCESS == result);
+                    isKeyLowPowerFlag = 0;
+                }
                 _nop_();
             }while(~P0_5);
         }
     }
+
 }
 
 void ledblink(uint8_t isblink, uint8_t uiFlag)
