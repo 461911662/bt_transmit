@@ -54,6 +54,7 @@ typedef enum{
 
 extern void initKey(void);
 extern void initUart(void);
+extern void initUart0_timer2(void);
 extern void reset(void);
 extern void entrySleep(void);
 extern void reMCUfun(void);

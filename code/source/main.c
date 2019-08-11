@@ -8,6 +8,7 @@
 **         E-mail:info@amiccom.com.tw  http: //www.amiccom.com.tw           **
 *****************************************************************************/
 #include "define.h"
+#include "debug.h"
 #include "A8107.h"
 #include "LibFunction.h"
 #include "mcufunction.h"
@@ -136,6 +137,13 @@ void main(void)
     /* 3.开中断 */
     InterruptEnable();
 
+    /* delay ~300ms */
+    for(i=0; i<10000; i++)
+    {
+        _3nop_delay();
+    }
+    initUart0_timer2();
+
     Timer500ms_flag = 0; /* 清除Timer500ms_flag，每隔0.5s会被置位 */
     RF_Timer500ms(ENABLE);
 
@@ -195,6 +203,7 @@ void main(void)
             }
             else if(ble_state == CONNECT_ESTABLISH_STATE)
             {
+                dprintf("0123456789");
                 ledblink(FALSE, LED_FLAG_NOBLINK);
                 fast_adv = 1;
 

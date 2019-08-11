@@ -42,19 +42,52 @@ void initKey(void)
     ** PUN - 0:Pull-up   1:HZ
     ** WUn - 0:Wakeup    1:No Wakeup
     */
-    P0 = PWUP_P0;
-    P0OE = PWUP_P0OE; //P06:输出
-    P0PUN = PWUP_P0PUN; //0x2F;输入浮空
+    P0 |= PWUP_P0;
+    P0OE |= PWUP_P0OE; //P06:输出
+    P0PUN |= PWUP_P0PUN; //0x2F;输入浮空
     P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
 
     EIE |= EKEYINT; /* 使能外部按键中断 */
     EIP |= EKEYPRI; /* 外部中断优先级高 */
-    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */    
+    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
 }
 
 void initUart(void)
 {
+    P3OE |= 0x02;
+    P3PUN |= 0x02;
+    P3WUN |= 0xFF;
 
+    P3 = 0xFF;
+
+    IOSEL |= 0x11; /* P3.0/P3.1 is used for uart */
+}
+
+void initUart0_timer2(void)
+{
+    /* 1.Port 3.0 and Port3.1 are selected for UART0 mode0 */
+    IOSEL |= 0x01;
+
+    /* 2.enable serial reception and timer2 */
+    SCON=0x50;
+
+    /* 3.set timer2 value for baudrate 19200 */
+    RCAP2H = (65536-13)/256;
+    RCAP2L = (65536-13)%256;
+    TH2 = (65536-13)/256;
+    TL2 = (65536-13)%256;
+
+    /* 4.enable transmit and receive clock */
+    T2CON = 0x30;
+
+    /* 5.使能串口接收 */
+    SCON |= 0x10;
+
+    /* 6.start timer2 */
+    T2CON |= 0x04;
+
+    /* 7.enable uart interrupt */
+    IE |= 0x10;
 }
 
 void reMCUfun(void)
@@ -77,7 +110,10 @@ void reMCUfun(void)
     EIE |= EKEYINT; /* 使能外部按键中断 */
     EIP |= EKEYPRI; /* 外部中断优先级高 */
 
+    initKey();    
+    initUart();
     InterruptEnable();
+    
 }
 
 /* 进入休眠模式 */

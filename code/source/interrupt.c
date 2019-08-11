@@ -8,6 +8,7 @@
 **         E-mail:info@amiccom.com.tw  http: //www.amiccom.com.tw           **
 *****************************************************************************/
 #include "define.h"
+#include "debug.h"
 #include "A8107.h"
 #include "LibFunction.h"
 #include "usermcufunction.h"
@@ -39,6 +40,25 @@ void Timer1_ISR(void) interrupt 3
 void Uart0Isr(void) interrupt 4
 {
     // User can add code
+    if(0 != TI)
+    {
+        TI = 0;
+        UartSendCnt--;
+        if(0 != UartSendCnt)
+        {
+            Uartptr++;
+            SBUF = *Uartptr;
+        }
+        else
+        {
+            UartTxtrasmitFlag = 0;
+        }
+    }
+
+    if(0 != RI)
+    {
+        RI = 0;
+    }
     _nop_();
 }
 
