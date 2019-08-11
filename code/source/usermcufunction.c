@@ -15,6 +15,48 @@ void reset(void)
     _nop_();
 }
 
+/*********************************************************************
+** InitMCU
+*
+******************************************************************************
+**  ROUTINE NAME: initMcu                                                   **
+**  I/O define  :                                                           **
+**     Bit|   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   | **
+**  Port 0|  P07  |  P06  |  P05  |  P04  |  P03  |  P02  |  P01  |  P00  | **
+**   I/O  | undef | IO(O) | KEY(I)| undef | KEY(I)| KEY(I)| KEY(I)| KEY(I)| **
+**  Port 1|  P17  |  P16  |  P15  |  P14  |  P13  |  P12  |  P11  |  P10  | **
+**   I/O  | undef | undef | undef | undef | undef | undef | undef | undef | **
+**  Port 3|  P37  |  P36  |  P35  |  P34  |  P33  |  P32  |  P31  |  P30  | **
+**   I/O  | undef | undef | undef | undef | undef | undef | Tx(O) | Rx(I) | **
+******************************************************************************
+*1.初始化P00(Vol-) P01(Vol+) P02(video) P03(invert) P05(capture)按键
+*2.初始化串口引脚 P30 P31
+*3.初始化系统时钟，使能引脚功能
+*4.清除RSFLAG寄存器标志
+*********************************************************************/
+void initKey(void)
+{
+    /*
+    ** Port 0/1/2
+    ** OE  - 0:input     1:output
+    ** PUN - 0:Pull-up   1:HZ
+    ** WUn - 0:Wakeup    1:No Wakeup
+    */
+    P0 = PWUP_P0;
+    P0OE = PWUP_P0OE; //P06:输出
+    P0PUN = PWUP_P0PUN; //0x2F;输入浮空
+    P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
+
+    EIE |= EKEYINT; /* 使能外部按键中断 */
+    EIP |= EKEYPRI; /* 外部中断优先级高 */
+    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */    
+}
+
+void initUart(void)
+{
+
+}
+
 void reMCUfun(void)
 {
     /* 关外部中断 */

@@ -117,10 +117,12 @@ void main(void)
 
     /* 2.初始化MCU */
     InitMCU();
+    initKey();
+    initUart();
+
     internalRC = 0; //0 :Using External RC 32.768KHz ; 1:Using internal RC 32.000KHz
-
     InitCrystalCL(0x0D);  //AMICCOM CrystalCL 0x32(MD8107-A05)(18pF) / 0x14(MD8107-A06)(12pF) / 0x0D(9pF)
-
+  
     Temp = InitRF();
     if(Temp != SUCCESS) {
         /*******Calibration Error*******/
@@ -874,10 +876,10 @@ void key_handleEventForios(void)
     if(~P0_0)
     {
         /* 消抖 */
-        //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<1000; i++)
+        //for(i=0; i<250; i++)
         {
-            //for(j=0; j<10; j++)
+            for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -893,6 +895,10 @@ void key_handleEventForios(void)
         {
             /* 焦距- */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x1F; /* Volume- */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
             result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
             if(result == SUCCESS)
             {
@@ -910,6 +916,10 @@ void key_handleEventForios(void)
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                 if(result == SUCCESS)
                 {
@@ -931,10 +941,10 @@ void key_handleEventForios(void)
     if(~P0_1)
     {
         /* 消抖 */
-        //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<1000; i++)
+        //for(i=0; i<250; i++)
         {
-            //for(j=0; j<10; j++)
+            for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -950,6 +960,10 @@ void key_handleEventForios(void)
         {
             /* 焦距+ */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x1E; /* Volume+ */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
             result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
             if(result == SUCCESS)
             {
@@ -967,6 +981,10 @@ void key_handleEventForios(void)
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                 if(result == SUCCESS)
                 {
@@ -988,10 +1006,10 @@ void key_handleEventForios(void)
     if(~P0_2)
     {
         /* 消抖 */
-        //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<1000; i++)
+        //for(i=0; i<250; i++)
         {
-            //for(j=0; j<10; j++)
+            for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1007,10 +1025,10 @@ void key_handleEventForios(void)
         {
             /* 摄像 */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x21; /* key4 */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
             result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
             if(result == SUCCESS)
             {
@@ -1028,10 +1046,10 @@ void key_handleEventForios(void)
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                 if(result == SUCCESS)
                 {
@@ -1053,10 +1071,10 @@ void key_handleEventForios(void)
     if(~P0_3)
     {
         /* 消抖 */
-        //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<1000; i++)
+        //for(i=0; i<250; i++)
         {
-            //for(j=0; j<10; j++)
+            for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1072,10 +1090,11 @@ void key_handleEventForios(void)
         {
             /* 前后镜头切换 */
             att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x20; /* key3 */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
-            //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA5] = 0x66; /* pwoer */
             result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
             if(result == SUCCESS)
             {
@@ -1093,10 +1112,11 @@ void key_handleEventForios(void)
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
-                //att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA5] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                 if(result == SUCCESS)
                 {
@@ -1118,10 +1138,10 @@ void key_handleEventForios(void)
     if(~P0_5)
     {
         /* 消抖 */
-        //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<1000; i++)
+        //for(i=0; i<250; i++)
         {
-            //for(j=0; j<10; j++)
+            for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
@@ -1136,7 +1156,11 @@ void key_handleEventForios(void)
             & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
             /* 照相 */
-            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x28; /* entry */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x58;//0x28; /* entry */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x72; /* fingerprint identify end */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x69; /* 401 */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x6E; /* fingerprint up */
+            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x6F; /* fingerprint finger up */
             result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
             if(result == SUCCESS)
             {
@@ -1154,6 +1178,10 @@ void key_handleEventForios(void)
                 & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
             {
                 att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA1] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA2] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA3] = 0x00;
+                att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA4] = 0x00;
                 result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
                 if(result == SUCCESS)
                 {

@@ -52,6 +52,8 @@ typedef enum{
 
 #undef KYE_DEBUG
 
+extern void initKey(void);
+extern void initUart(void);
 extern void reset(void);
 extern void entrySleep(void);
 extern void reMCUfun(void);

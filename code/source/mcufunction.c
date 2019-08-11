@@ -45,27 +45,6 @@ void InitMCU(void)
     ** PUN - 0:Pull-up   1:HZ
     ** WUn - 0:Wakeup    1:No Wakeup
     */
-#ifdef _USERMCUFUNCTION_H_
-    P0 = PWUP_P0;
-    P0OE = PWUP_P0OE; //P06:输出
-    P0PUN = PWUP_P0PUN; //0x2F;输入浮空
-    P0WUN |= ~(PWUP_P0WUN); //0xFF;引脚不唤醒
-
-    P1    = 0xFF;
-    P1OE  = 0x00;
-    P1PUN = 0x00;
-    P1WUN = 0xFF;
-
-    P2    = 0xFF;
-    P2OE  = 0x00;
-    P2PUN = 0x00;
-    P2WUN = 0xFF;
-
-    P3    = 0xFF;
-    P3OE  = 0x00;
-    P3PUN = 0x00;
-    P3WUN = 0xFF;
-#else
     P0    = 0xFF;
     P0OE  = 0x00;
     P0PUN = 0x00;
@@ -85,7 +64,6 @@ void InitMCU(void)
     P3OE  = 0x00;
     P3PUN = 0x00;
     P3WUN = 0xFF;
-#endif
 
     //clear XData RAM
     for (i = 0x0000; i < 0x2000; i++)
@@ -99,11 +77,5 @@ void InitMCU(void)
     /*********************************************/
 
     check_stable = 0x5AA5;
-
-#ifdef _USERMCUFUNCTION_H_
-    EIE |= EKEYINT; /* 使能外部按键中断 */
-    EIP |= EKEYPRI; /* 外部中断优先级高 */
-    EIF |= CLEAR_KEYINTFLAG; /* 清除中断标志位 */
-#endif
 }
 
