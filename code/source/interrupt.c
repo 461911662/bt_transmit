@@ -47,6 +47,7 @@ void Uart0Isr(void) interrupt 4
         if(0 != UartSendCnt)
         {
             Uartptr++;
+            while(TB8); /* wait for a minute */
             SBUF = *Uartptr;
         }
         else
@@ -59,7 +60,7 @@ void Uart0Isr(void) interrupt 4
     {
         RI = 0;
     }
-    _nop_();
+    //_nop_();
 }
 
 /*********************************************************************

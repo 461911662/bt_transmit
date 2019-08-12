@@ -13,7 +13,7 @@ int dprintf(const char *cc)
     {
         return len;
     }
-
+    
     memset((void*)UartTxBuf, 0, 64);
     strncpy(UartTxBuf, cc, 10);
     Uartptr = UartTxBuf;
@@ -24,18 +24,30 @@ int dprintf(const char *cc)
     Uartptr = UartTxBuf;
     if(64 <= len && UartTxBuf[63] != '\n')
     {
+        //UartTxBuf[62] = '\r';
         UartTxBuf[63] = '\n';
     }
     
-    if(63 > len && UartTxBuf[len-1] != '\n')
+    if(64 > len && UartTxBuf[len-1] != '\n')
     {
-        UartTxBuf[len++] = '\n';
+        if(63 > len)
+        {
+            //UartTxBuf[len] = '\r';
+            UartTxBuf[len++] = '\n';
+        }
+        else
+        {
+            //UartTxBuf[len-2] = '\r';
+            UartTxBuf[len-1] = '\n';
+        }
     }
 
     if(0 == len)
     {
         return len;
     }
+
+    while(TB8); /* wait for a minute */
     
     SBUF = UartTxBuf[0];
     UartTxtrasmitFlag = 1;

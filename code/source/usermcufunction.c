@@ -55,7 +55,7 @@ void initKey(void)
 void initUart(void)
 {
     P3OE |= 0x02;
-    P3PUN |= 0x02;
+    P3PUN |= 0x03;
     P3WUN |= 0xFF;
 
     P3 = 0xFF;
@@ -65,17 +65,30 @@ void initUart(void)
 
 void initUart0_timer2(void)
 {
+    uint16_t BR_I;
+    uint16_t BR_F;
+
     /* 1.Port 3.0 and Port3.1 are selected for UART0 mode0 */
     IOSEL |= 0x01;
 
-    /* 2.enable serial reception and timer2 */
-    SCON=0x50;
+    /* 2.set uart mode1 */
+    SCON=0x40;
 
+    /* 3.set baudrate 38400 */
+    BR_I = 208 /16 - 1;  
+    BR_F = 3;
+    SBRG0L = (BR_I & 0x0F)<<4;
+    SBRG0L = SBRG0L | BR_F;
+    SBRG0H = (BR_I)>>4;
+    SBRG0H = SBRG0H | 0x80;//en uart0
+
+#if 0
     /* 3.set timer2 value for baudrate 19200 */
-    RCAP2H = (65536-13)/256;
-    RCAP2L = (65536-13)%256;
-    TH2 = (65536-13)/256;
-    TL2 = (65536-13)%256;
+    RCAP2H = (65536-104)/256;
+    RCAP2L = (65536-104)%256;
+    TH2 = (65536-104)/256;
+    TL2 = (65536-104)%256;
+#endif
 
     /* 4.enable transmit and receive clock */
     T2CON = 0x30;

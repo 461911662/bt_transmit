@@ -203,7 +203,6 @@ void main(void)
             }
             else if(ble_state == CONNECT_ESTABLISH_STATE)
             {
-                dprintf("0123456789");
                 ledblink(FALSE, LED_FLAG_NOBLINK);
                 fast_adv = 1;
 
@@ -716,6 +715,7 @@ void key_handleEventForandroid(void)
                 _3nop_delay();
             }
         }
+        dprintf("0123456789\n");
 
         if(P0_3)
         {
