@@ -127,10 +127,6 @@ void KeyINT_ISR(void) interrupt 11
 {
     // User can add code
     EIF |= CLEAR_KEYINTFLAG;                /* 清除外部中断标志位 */
-    
-#ifdef KYE_DEBUG
-    P0OE &= ~0x02;
-#endif
 
     /* 键盘唤醒PM1->normal */
     if(IntoSleepFlag)

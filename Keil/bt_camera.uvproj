@@ -458,6 +458,11 @@
               <FileType>5</FileType>
               <FilePath>..\code\include\usermcufunction.h</FilePath>
             </File>
+            <File>
+              <FileName>debug.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\include\debug.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -507,6 +512,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\source\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\source\debug.c</FilePath>
             </File>
           </Files>
         </Group>
