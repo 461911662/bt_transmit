@@ -529,13 +529,13 @@ void key_handleEventForandroid(void)
     {
         /* 消抖 */
         //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+/*        for(i=0; i<250; i++)
         {
             //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
-        }
+        }*/
 
         if(P0_0)
         {
@@ -586,13 +586,13 @@ void key_handleEventForandroid(void)
     {
         /* 消抖 */
         //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+/*        for(i=0; i<250; i++)
         {
             //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
-        }
+        }*/
 
         if(P0_1)
         {
