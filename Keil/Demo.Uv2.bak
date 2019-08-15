@@ -144,7 +144,7 @@ Options 1,0,0  // Target 'Target 1'
  LX51DAS ()
  LX51IDS ()
   OPTDL (S8051.DLL)()(DCORE51.DLL)(-p251int -dAMC51)(S8051.DLL)()(DCORE51.DLL)(-p251int -dAMC51 -h)
-  OPTDBG 48126,9,()()()()()()()()()() (BIN\AMICCOM.DLL)()()()
+  OPTDBG 48126,-1,()()()()()()()()()() (BIN\AMICCOM.DLL)()()()
  FLASH1 { 1,0,0,0,1,0,0,0,5,16,0,0,0,0,0,0,0,0,0,0 }
  FLASH2 (BIN\AMICCOM.DLL)
  FLASH3 ("" ())

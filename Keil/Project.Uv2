@@ -31,7 +31,7 @@ File 6,1,<..\BLE Service\servicegen.c><servicegen.c>
 File 7,1,<..\Security Setting\security.c><security.c>
 File 8,1,<..\source\application_check.c><application_check.c>
 File 8,1,<..\source\interrupt.c><interrupt.c>
-File 8,1,<..\source\main_demo.c><main_demo.c>
+File 8,1,<..\source\main.c><main.c>
 File 8,1,<..\source\mcufunction.c><mcufunction.c>
 File 9,2,<..\UserData\IEEE.a51><IEEE.a51>
 File 9,2,<..\UserData\OTA_Data.a51><OTA_Data.a51>
@@ -63,7 +63,7 @@ Options 1,0,0  // Target 'Target 1'
  OrgReg (ÿAMICCOM\)
  TgStat=16
  OutDir (.\)
- OutName (Demo)
+ OutName (Project)
  GenApp=1
  GenLib=0
  GenHex=1
@@ -138,7 +138,7 @@ Options 1,0,0  // Target 'Target 1'
  LX51IDB ()
  LX51PRC ()
  LX51STK ()
- LX51COS (?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt,?PR?*main_demo)
+ LX51COS (?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt,?PR?*main)
  LX51XDS ()
  LX51BIS ()
  LX51DAS ()

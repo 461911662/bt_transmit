@@ -1,3 +1,0 @@
-# *.lst etc.  
-generate *.lst...  
-

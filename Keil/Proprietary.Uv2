@@ -7,6 +7,7 @@ Group (ASM)
 Group (BLE_Library)
 Group (OTA)
 Group (IAP)
+Group (Proprietary)
 Group (include)
 Group (BLE_Service)
 Group (Security_Setting)
@@ -20,21 +21,23 @@ File 1,2,<..\OTA\OTA_IAP.asm><OTA_IAP.asm>
 File 2,4,<..\Library\A8107_BLE_LIB.LIB><A8107_BLE_LIB.LIB>
 File 3,4,<..\OTA\OTA.LIB><OTA.LIB>
 File 4,4,<..\IAP\IAP.LIB><IAP.LIB>
-File 5,5,<..\include\A8107.h><A8107.h>
-File 5,5,<..\include\define.h><define.h>
-File 5,5,<..\include\IAP.h><IAP.h>
-File 5,5,<..\include\LibFunction.h><LibFunction.h>
-File 5,5,<..\include\mcufunction.h><mcufunction.h>
-File 5,5,<..\include\OTA.h><OTA.h>
-File 5,5,<..\include\security.h><security.h>
-File 6,1,<..\BLE Service\servicegen.c><servicegen.c>
-File 7,1,<..\Security Setting\security.c><security.c>
-File 8,1,<..\source\application_check.c><application_check.c>
-File 8,1,<..\source\interrupt.c><interrupt.c>
-File 8,1,<..\source\main_demo.c><main_demo.c>
-File 8,1,<..\source\mcufunction.c><mcufunction.c>
-File 9,2,<..\UserData\IEEE.a51><IEEE.a51>
-File 9,2,<..\UserData\OTA_Data.a51><OTA_Data.a51>
+File 5,4,<..\Proprietary\Proprietary.LIB><Proprietary.LIB>
+File 6,5,<..\include\A8107.h><A8107.h>
+File 6,5,<..\include\define.h><define.h>
+File 6,5,<..\include\IAP.h><IAP.h>
+File 6,5,<..\include\LibFunction.h><LibFunction.h>
+File 6,5,<..\include\mcufunction.h><mcufunction.h>
+File 6,5,<..\include\OTA.h><OTA.h>
+File 6,5,<..\include\Proprietary.h><Proprietary.h>
+File 6,5,<..\include\security.h><security.h>
+File 7,1,<..\BLE Service\servicegen.c><servicegen.c>
+File 8,1,<..\Security Setting\security.c><security.c>
+File 9,1,<..\source\application_check.c><application_check.c>
+File 9,1,<..\source\interrupt_24G.c><interrupt_24G.c>
+File 9,1,<..\source\main_24G.c><main_24G.c>
+File 9,1,<..\source\mcufunction.c><mcufunction.c>
+File 10,2,<..\UserData\IEEE.a51><IEEE.a51>
+File 10,2,<..\UserData\OTA_Data.a51><OTA_Data.a51>
 
 
 Options 1,0,0  // Target 'Target 1'
@@ -63,7 +66,7 @@ Options 1,0,0  // Target 'Target 1'
  OrgReg (ÿAMICCOM\)
  TgStat=16
  OutDir (.\)
- OutName (Demo)
+ OutName (Proprietary)
  GenApp=1
  GenLib=0
  GenHex=1
@@ -89,7 +92,7 @@ Options 1,0,0  // Target 'Target 1'
  XT51FL=0
  CBANKS5=0
  XBANKS5=0
- RCB51 { 0,0,0,0,0,255,255,0,0 }
+ RCB51 { 0,0,0,0,0,0,0,1,0 }
  RXB51 { 0,0,0,0,0,0,0,0,0 }
  OCM51 { 0,0,3,0,0,0,253,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
  OCR51 { 0,0,0,0,0,0,32,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }
@@ -138,7 +141,7 @@ Options 1,0,0  // Target 'Target 1'
  LX51IDB ()
  LX51PRC ()
  LX51STK ()
- LX51COS (?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt,?PR?*main_demo)
+ LX51COS (?PR?*OTA(0x400),?C?LIB_CODE,?PR?*IAP(0X2000),?PR?_ERASE_START?IAP(0x5000),?PR?_WRITEFLASH_START?IAP,?PR?*interrupt_24G,?PR?*main_24G)
  LX51XDS ()
  LX51BIS ()
  LX51DAS ()
