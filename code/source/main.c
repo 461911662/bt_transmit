@@ -280,6 +280,7 @@ void main(void)
                 {
                     key_handleEventForandroid();
                 }
+                
                 if(ble_state == CONNECT_ESTABLISH_STATE)
                 {
                     BLE_AutoPwrDown_Enable();
@@ -520,6 +521,7 @@ void key_handleEventForandroid(void)
 {
     uint8_t xdata result, result1;
     uint16_t i,j;
+    bit usFlag = FALSE;
     j=j; /* not visibel warning */
     isKeyLowPowerFlag = 0;
 
@@ -529,13 +531,13 @@ void key_handleEventForandroid(void)
     {
         /* 消抖 */
         //for(i=0; i<1000; i++)
-/*        for(i=0; i<250; i++)
+        for(i=0; i<250; i++)
         {
             //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
-        }*/
+        }
 
         if(P0_0)
         {
@@ -586,13 +588,13 @@ void key_handleEventForandroid(void)
     {
         /* 消抖 */
         //for(i=0; i<1000; i++)
-/*        for(i=0; i<250; i++)
+        for(i=0; i<250; i++)
         {
             //for(j=0; j<10; j++)
             {
                 _3nop_delay();
             }
-        }*/
+        }
 
         if(P0_1)
         {
@@ -787,6 +789,44 @@ void key_handleEventForandroid(void)
             return ;
         }
 
+        //if(isLongPressed) 取消长按功能
+        {
+            do
+            {
+                isKeyLowPowerFlag++;
+                if(BLE_POWERSAVE_LEVEL <= isKeyLowPowerFlag && FALSE == usFlag)
+                {
+                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                    {
+                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
+                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    }
+
+                    do
+                    {
+                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                        {
+                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
+                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                            if(result1 == SUCCESS)
+                            {
+                                usFlag = TRUE;
+                                break;
+                            }
+                        }
+                    }while(SUCCESS == result);
+                }
+                _nop_();
+            }while(~P0_5);
+
+            if(TRUE == usFlag)
+            {
+                return;
+            }
+        }
+
         if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
             & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
@@ -806,7 +846,7 @@ void key_handleEventForandroid(void)
         {
             return;
         }
-
+        
         do
         {
             if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
@@ -824,39 +864,6 @@ void key_handleEventForandroid(void)
                 }
             }
         }while(xpresskeyCapture);
-
-        //if(isLongPressed) 取消长按功能
-        {
-            do
-            {
-                isKeyLowPowerFlag++;
-                if(BLE_POWERSAVE_LEVEL <= isKeyLowPowerFlag)
-                {
-                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
-                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-                    {
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
-                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
-                    }
-
-                    do
-                    {
-                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
-                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-                        {
-                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
-                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
-                            if(result1 == SUCCESS)
-                            {
-                                break;
-                            }
-                        }
-                    }while(SUCCESS == result);
-                    isKeyLowPowerFlag = 0;
-                }
-                _nop_();
-            }while(~P0_5);
-        }
     }
     
 }
@@ -865,6 +872,7 @@ void key_handleEventForios(void)
 {
     uint8_t xdata result, result1;
     uint16_t i,j;
+    bit usFlag = FALSE;
     j=j; /* not visibel warning */
     isKeyLowPowerFlag = 0;
 
@@ -916,6 +924,17 @@ void key_handleEventForios(void)
                 }
             }
         }while(xpresskeyVoldown);
+
+        /* Pressed delay 500ms */
+        for(i=0; i<18888; i++)
+        {
+            if(P0_0)
+            {
+                break;
+            }
+
+            _3nop_delay();
+        }
 
         if(isLongPressed)
         {
@@ -973,6 +992,17 @@ void key_handleEventForios(void)
                 }
             }
         }while(xpresskeyVolup);
+
+        /* Pressed delay 500ms */
+        for(i=0; i<18888; i++)
+        {
+            if(P0_1)
+            {
+                break;
+            }
+
+            _3nop_delay();
+        }
 
         if(isLongPressed)
         {
@@ -1115,6 +1145,45 @@ void key_handleEventForios(void)
             return ;
         }
 
+        //if(isLongPressed) //取消长按功能
+        {
+            do
+            {
+                isKeyLowPowerFlag++;
+                if(BLE_POWERSAVE_LEVEL <= isKeyLowPowerFlag  && FALSE == usFlag)
+                {
+                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                    {
+                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
+                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                    }
+
+                    do
+                    {
+                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
+                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
+                        {
+                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
+                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
+                            if(result1 == SUCCESS)
+                            {
+                                usFlag = FALSE;
+                                break;
+                            }
+                        }
+                    }while(SUCCESS == result);
+                    isKeyLowPowerFlag = 0;
+                }
+                _nop_();
+            }while(~P0_5);
+
+            if(TRUE == usFlag)
+            {
+                return;
+            }
+        }
+
         if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
             & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
         {
@@ -1178,39 +1247,6 @@ void key_handleEventForios(void)
             }
         }while(xpresskeyCapture);
 #endif
-
-        //if(isLongPressed) //取消长按功能
-        {
-            do
-            {
-                isKeyLowPowerFlag++;
-                if(BLE_POWERSAVE_LEVEL <= isKeyLowPowerFlag)
-                {
-                    if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
-                        & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-                    {
-                        att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x27; /* key0 */
-                        result = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
-                    }
-
-                    do
-                    {
-                        if((att_HDL_HIDS_REPORT_KBI_CLIENT_CHARACTERISTIC_CONFIGURATION[0] 
-                            & GATT_DESCRIPTORS_CLIENT_CHARACTERISTIC_CONFIGURATION_NOTIFICATION) != 0)
-                        {
-                            att_HDL_HIDS_REPORT_KBI[HDL_HIDS_REPORT_TAB_KEY_DATA0] = 0x00; /* key0 */
-                            result1 = BLE_SendData(att_HDL_HIDS_REPORT_KBI,ATT_HDL_HIDS_REPORT_KBI_INIT,ATT_HDL_HIDS_REPORT_KBI_INIT[4]);
-                            if(result1 == SUCCESS)
-                            {
-                                break;
-                            }
-                        }
-                    }while(SUCCESS == result);
-                    isKeyLowPowerFlag = 0;
-                }
-                _nop_();
-            }while(~P0_5);
-        }
     }
 
 }
