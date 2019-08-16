@@ -2090,6 +2090,7 @@ void originTaoBaoProfile(void)
 
 void originComsumer(void)
 {
+#ifdef _PROFILE_HOGP_COMSUMER_
     uint8_t xdata   result;
 
     if(~P0_6)
@@ -2121,6 +2122,7 @@ void originComsumer(void)
             }
         }
     }
+#endif
 }
 
 void originKeyboard(void)
