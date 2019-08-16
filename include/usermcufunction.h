@@ -17,7 +17,7 @@
 #define PWUP_P0WUN      (0xD0) /* port wake up */
 
 #define BLE_MACADDRESS_SIZE  6
-#define BLE_POWERSAVE_LEVEL (0x2E1D8) /* 1s~3s */
+#define BLE_POWERSAVE_LEVEL (0x2343C) /* 1s~3s */
 
 typedef struct BLE_CMDREQUEST
 {

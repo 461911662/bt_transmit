@@ -1309,9 +1309,9 @@ void userKeyHandleEventForandroid(void)
     /* enter */
     if(~P0_5)
     {
-        /* 消抖 */
+        /* 消抖15ms */
         //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<500; i++)
         {
             //for(j=0; j<10; j++)
             {
@@ -1665,9 +1665,9 @@ void userKeyHandleEventForios(void)
     /* enter + key8/volume+ */
     if(~P0_5)
     {
-        /* 消抖 */
+        /* 消抖15ms */
         //for(i=0; i<1000; i++)
-        for(i=0; i<250; i++)
+        for(i=0; i<500; i++)
         {
             //for(j=0; j<10; j++)
             {
